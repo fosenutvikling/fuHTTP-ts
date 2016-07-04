@@ -1,0 +1,33 @@
+{
+  "name": "fuhttp-ts",
+  "version": "0.0.0",
+  "description": "a HTTP-server written in TypeScript using Node.js",
+  "main": "dist/fuhttp.js",
+  "typings": "build/fuhttp",
+  "scripts": {
+    "test": "echo \"Error: no test specified\" && exit 1"
+  },
+  "repository": {
+    "type": "git",
+    "url": "git+https://github.com/fosenutvikling/fuHTTP-ts.git"
+  },
+  "keywords": [
+    "ts",
+    "fu",
+    "http"
+  ],
+  "author": "Jonas Kirkemyr <jonas@fosen-utvikling.no> (http://fosen-utvikling.no)",
+  "license": "MIT",
+  "bugs": {
+    "url": "https://github.com/fosenutvikling/fuHTTP-ts/issues"
+  },
+  "homepage": "https://github.com/fosenutvikling/fuHTTP-ts#readme",
+  "dependencies": {
+    "crossroads": "^0.12.2"
+  },
+  "devDependencies": {
+    "grunt": "^1.0.1",
+    "grunt-contrib-uglify": "^1.0.1",
+    "grunt-ts": "^5.5.1"
+  }
+}

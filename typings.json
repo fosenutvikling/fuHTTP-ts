@@ -1,0 +1,9 @@
+{
+  "name": "fuhttp-ts",
+  "dependencies": {},
+  "globalDependencies": {
+    "crossroads": "registry:dt/crossroads#0.0.0+20160317120654",
+    "js-signals": "registry:dt/js-signals#0.0.0+20160316155526",
+    "node": "registry:dt/node#6.0.0+20160621231320"
+  }
+}

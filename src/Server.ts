@@ -2,7 +2,7 @@ import {Route} from './Route';
 import * as url from 'url';
 import * as net from 'net';
 import * as http from 'http';
-import {iMiddleware} from './iMiddleware';
+import {iMiddleware} from './middlewares/iMiddleware';
 
 // Keys stored in `_errorFunctions` of the Server class
 const ERROR_KEY_REQUEST = 'request';

@@ -1,7 +1,7 @@
 import * as crossroads from 'crossroads';
 import * as http from 'http';
 import {Server} from './Server';
-import {iMiddleware} from './iMiddleware';
+import {iMiddleware} from './middlewares/iMiddleware';
 
 type HTTP_METHODS = "GET" | "POST" | "PUT" | "DELETE";
 

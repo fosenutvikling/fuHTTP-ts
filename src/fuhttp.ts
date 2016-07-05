@@ -1,3 +1,3 @@
 export * from './Server';
 export * from './Route';
-export * from './iMiddleware';
+export * from './middlewares/iMiddleware';

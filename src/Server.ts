@@ -93,7 +93,7 @@ export class Server {
         // Initialize variables to be populated
         this.port = port;
         this.hostname = host;
-        // this.routes = {};
+        this.routes = {};
         this._middlewares = <[iMiddleware]>[];
         this._errorFunctions = {};
         this.connected = false;
@@ -289,6 +289,9 @@ export class Server {
      * given port and hostname
      */
     public listen() {
+
+        if (Object.keys(this.routes).length == 0)
+            throw new Error("No routes added, and no connections will therefore be accepted.");
 
         if (this._errorFunctions[ERROR_KEY_REQUEST] == undefined)
             this._errorFunctions[ERROR_KEY_REQUEST] = function (error: any, response: http.ServerResponse) {

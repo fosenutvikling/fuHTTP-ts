@@ -140,7 +140,8 @@ export class Route {
         if (this._middlewares != null) {
             var length = this._middlewares.length;
             for (let i = 0; i < length; ++i)
-                this._middlewares[i].alter(req, res);
+                if (!this._middlewares[i].alter(req, res))
+                    return; // Should stop processing of data if a middleware fails, to prevent setting headers if already changed by a middleware throwing an error
         }
 
         switch (req.method) {

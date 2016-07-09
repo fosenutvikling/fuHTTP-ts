@@ -164,14 +164,15 @@ export class Server {
         // Load middlewares
         var length = this.middlewares.length;
         for (let i = 0; i < length; ++i)
-            this.middlewares[i].alter(request, response);
+            if (!this.middlewares[i].alter(request, response))
+                return; // Should stop processing of dataif a middleware fails, to prevent setting headers if already changed by a middleware throwing an error
 
         // Find the route which should try to parse the requested URL
         var firstSlashPos = request.url.indexOf('/', 1);
         var routeKey = request.url.substring(1, firstSlashPos);
         var routeUrl = request.url.substring(firstSlashPos);
         var route = this.routes[routeKey];
-        
+
         if (route !== undefined)
             route.parse(routeUrl, request, response);
         else // 404 error

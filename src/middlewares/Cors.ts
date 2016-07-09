@@ -70,10 +70,10 @@ export class Middleware implements iMiddleware {
 
         if (this.options.methods != null)
             res.setHeader('Access-Control-Request-Method', this.options.methods.toString()); // Required, allowed methods for path
-
         if (this.options.cookies)
             res.setHeader('Access-Control-Allow-Credentials', 'true'); // Optional, allows storing cookies
         if (this.options.maxage)
             res.setHeader('Access-Control-Max-Age', this.options.maxage.toString()); // Optional, allows preflight response to be cached, preventing an OPTIONS request for each http-request
+        return true;
     }
 }

@@ -52,5 +52,7 @@ export class Middleware implements iMiddleware {
 
             res.end();
         };
+
+        return true;
     }
 }

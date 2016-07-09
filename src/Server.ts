@@ -2,12 +2,21 @@ import {Route} from './Route';
 import * as url from 'url';
 import * as net from 'net';
 import * as http from 'http';
+import * as formidable from 'formidable';
 import {iMiddleware} from './middlewares/iMiddleware';
 
 // Keys stored in `_errorFunctions` of the Server class
 const ERROR_KEY_REQUEST = 'request';
 const ERROR_KEY_RESPONSE = 'response';
 const ERROR_KEY_NOTFOUND = 'notfound';
+const ERROR_KEY_OVERFLOW = 'overflow';
+
+export interface iBodyRequest extends http.IncomingMessage {
+    body?: string,
+    fields?: formidable.Fields,
+    files?: formidable.Files,
+    contentType?: string
+}
 
 /**
  * The HTTP-server class for receiving and responding to HTTP-requests
@@ -102,8 +111,9 @@ export class Server {
 
         var self = this;
 
-        this.server.on('request', function (request: http.ServerRequest, response: http.ServerResponse) {
+        this.server.on('request', function (request: http.IncomingMessage, response: http.ServerResponse) {
 
+            var body: string = "";
             request.on('error', function (error) {
                 self._errorFunctions[ERROR_KEY_REQUEST](error, response);
             });
@@ -112,23 +122,60 @@ export class Server {
                 self._errorFunctions[ERROR_KEY_RESPONSE](error, response);
             });
 
-            // Load middlewares
-            var length = self.middlewares.length;
-            for (let i = 0; i < length; ++i)
-                self.middlewares[i].alter(request, response);
+            if (request.method != "GET" && request.headers['content-length'] != undefined) { // Should parse the body if a POST,PUT or DELETE request is made, with content-length set
 
-            // Find the route which should try to parse the requested URL
-            var firstSlashPos = request.url.indexOf('/', 1);
-            var routeKey = request.url.substring(1, firstSlashPos);
-            var routeUrl = request.url.substring(firstSlashPos);
+                var contentTypeRaw: string = request.headers['content-type'];
+                var contentType = (contentTypeRaw != undefined) ? contentTypeRaw.slice(0, contentTypeRaw.indexOf(';')) : null;
 
-            var route = self.routes[routeKey];
+                (<iBodyRequest>request).contentType = contentType;
 
-            if (route !== undefined)
-                route.parse(routeUrl, request, response);
-            else // 404 error
-                self._errorFunctions[ERROR_KEY_NOTFOUND](response);
+                if (contentType == 'multipart/form-data') {
+                    var form = new formidable.IncomingForm();
+                    form.parse(request, function (error, fields, files) {
+
+                        if (error)
+                            return request.emit('error', 'Error parsing request body');
+
+                        (<iBodyRequest>request).fields = fields;
+                        (<iBodyRequest>request).files = files;
+                        self.routeLookup(request, response);
+                    });
+                }
+                else {
+                    request.on('data', function (data) {
+                        body += data;
+                        if (body.length > 1e6) { // Prevent flooding of RAM (1mb) http://stackoverflow.com/a/8640308
+                            return self._errorFunctions[ERROR_KEY_OVERFLOW](response);
+                        }
+                    });
+
+                    request.on('end', function () {
+                        (<iBodyRequest>request).body = body;
+                        self.routeLookup(request, response);
+                    });
+                }
+            }
+            else // No need to parse any body data when a GET request is made
+                self.routeLookup(request, response);
         });
+    }
+
+    private routeLookup(request: http.IncomingMessage, response: http.ServerResponse) {
+        // Load middlewares
+        var length = this.middlewares.length;
+        for (let i = 0; i < length; ++i)
+            this.middlewares[i].alter(request, response);
+
+        // Find the route which should try to parse the requested URL
+        var firstSlashPos = request.url.indexOf('/', 1);
+        var routeKey = request.url.substring(1, firstSlashPos);
+        var routeUrl = request.url.substring(firstSlashPos);
+        var route = this.routes[routeKey];
+        
+        if (route !== undefined)
+            route.parse(routeUrl, request, response);
+        else // 404 error
+            this._errorFunctions[ERROR_KEY_NOTFOUND](response);
     }
 
     /**
@@ -229,6 +276,15 @@ export class Server {
     }
 
     /**
+     * Function to run if a request provides too much data
+     */
+    public set onOverflowError(func: (response: http.ServerResponse) => void) {
+        if (this._errorFunctions[ERROR_KEY_OVERFLOW] != undefined)
+            throw new Error('Overflow error function already set');
+        this._errorFunctions[ERROR_KEY_OVERFLOW] = func;
+    }
+
+    /**
      * Adds a new route for the http-server for accepting http-requests
      * requires the "routeName" to be set
      * 
@@ -299,6 +355,7 @@ export class Server {
                 response.setHeader('Content-Type', 'text/html');
                 response.statusCode = 400;
                 response.statusMessage = 'Bad Request';
+                response.write('Error: ' + error);
                 response.write('The Request Error function is not set. It can be set using the appropriate function (onRequestError)');
                 response.end();
             }
@@ -319,6 +376,15 @@ export class Server {
                 response.statusCode = 404;
                 response.statusMessage = 'Not Found';
                 response.write('The Not Found Error function is not set. It can be set using the appropriate function (onNotFoundError)');
+                response.end();
+            }
+
+        if (this._errorFunctions[ERROR_KEY_OVERFLOW] == undefined)
+            this._errorFunctions[ERROR_KEY_OVERFLOW] = function (response: http.ServerResponse) {
+                response.setHeader('Content-Type', 'text/html');
+                response.statusCode = 413;
+                response.statusMessage = 'Request Entity Too Large';
+                response.write('The Overflow Error function is not set. It can be set using the appropriate function (onOverflowError)');
                 response.end();
             }
 

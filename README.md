@@ -39,6 +39,8 @@ This will create two folders:
 
 The CORS middleware are implemented following the guide(s) found at [enable-cors.org](http://enable-cors.org)
 
+### BodyJsonParse
+
 ## Examples
 
 Example for how to use the http-server is found in the `examples/` folder.
@@ -62,7 +64,7 @@ server.listen(); // Start listening for incoming requests
 ## TODOs
 
 - [ ] Support for [`connect`](https://github.com/senchalabs/connect) middlewares
-- [ ] `POST`, `PUT` and `DELETE` body data parsing
+- [x] `POST`, `PUT` and `DELETE` body data parsing
 - [ ] Publish as `npm` package
 - [ ] Testing, mochajs?
 

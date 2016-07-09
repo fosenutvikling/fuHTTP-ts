@@ -62,12 +62,12 @@ export class Route {
 
     private _putRoute: CrossroadsJs.CrossRoadsStatic;
 
+
     /**
      * Middlewares to be run before a route
      * 
-     * @see FuHTTP.iMiddleware
      * @private
-     * @type {[FuHTTP.iMiddleware]}
+     * @type {[iMiddleware]}
      */
     private _middlewares: [iMiddleware];
 
@@ -200,10 +200,11 @@ export class Route {
         this._routeName = route;
     }
 
+
     /**
      * Appends a middleware to the route
      * 
-     * @param {FuHTTP.iMiddleware} middleware (description)
+     * @param {iMiddleware} middleware to use
      */
     public use(middleware: iMiddleware) {
         if (this._middlewares == null)
@@ -211,11 +212,12 @@ export class Route {
         this._middlewares.push(middleware);
     }
 
+
     /**
      * Retrieves all registered middlewares
      * 
      * @readonly
-     * @type {[FuHTTP.iMiddleware]}
+     * @type {[iMiddleware]}
      */
     public get middleware(): [iMiddleware] {
         return this._middlewares;

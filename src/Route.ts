@@ -1,6 +1,6 @@
 import * as crossroads from 'crossroads';
 import * as http from 'http';
-import {Server} from './Server';
+import {Server, iBodyRequest} from './Server';
 import {iMiddleware} from './middlewares/iMiddleware';
 
 export type HTTP_METHODS = "GET" | "POST" | "PUT" | "DELETE";
@@ -96,9 +96,9 @@ export class Route {
      * Method for adding a new route for post-requests
      * 
      * @param {string} url the string a url need to match against for running `func`
-     * @param {(req: http.IncomingMessage, res: http.ServerResponse, ...params: any[]) => void} func Function to call when a route is successfully matched
+     * @param {(req: http.iBodyRequest, res: http.ServerResponse, ...params: any[]) => void} func Function to call when a route is successfully matched
      */
-    public post(url: string, func: (req: http.IncomingMessage, res: http.ServerResponse, ...params: any[]) => void) {
+    public post(url: string, func: (req: iBodyRequest, res: http.ServerResponse, ...params: any[]) => void) {
         if (this._postRoute == null)
             this._postRoute = this.createRoute();
         this._postRoute.addRoute(url, func);
@@ -108,9 +108,9 @@ export class Route {
      * Method for adding a new route for put-requests
      * 
      * @param {string} url the string a url need to match against for running `func`
-     * @param {(req: http.IncomingMessage, res: http.ServerResponse, ...params: any[]) => void} func Function to call when a route is successfully matched
+     * @param {(req: http.iBodyRequest, res: http.ServerResponse, ...params: any[]) => void} func Function to call when a route is successfully matched
      */
-    public put(url: string, func: (req: http.IncomingMessage, res: http.ServerResponse, ...params: any[]) => void) {
+    public put(url: string, func: (req: iBodyRequest, res: http.ServerResponse, ...params: any[]) => void) {
         if (this._putRoute == null)
             this._putRoute = this.createRoute();
         this._putRoute.addRoute(url, func);
@@ -120,9 +120,9 @@ export class Route {
      * Method for adding a new route for delete-requests
      * 
      * @param {string} url the string a url need to match against for running `func`
-     * @param {(req: http.IncomingMessage, res: http.ServerResponse, ...params: any[]) => void} func Function to call when a route is successfully matched
+     * @param {(req: http.iBodyRequest, res: http.ServerResponse, ...params: any[]) => void} func Function to call when a route is successfully matched
      */
-    public delete(url: string, func: (req: http.IncomingMessage, res: http.ServerResponse, ...params: any[]) => void) {
+    public delete(url: string, func: (req: iBodyRequest, res: http.ServerResponse, ...params: any[]) => void) {
         if (this._deleteRoute == null)
             this._deleteRoute = this.createRoute();
         this._deleteRoute.addRoute(url, func);
@@ -132,10 +132,10 @@ export class Route {
      * Check whether the `url` matches a registered route
      * 
      * @param {string} url to check routes against
-     * @param {http.ServerRequest} req http-request data for accessing recevied data from a client
+     * @param {http.IncomingMessage} req http-request data for accessing recevied data from a client
      * @param {http.ServerResponse} res http-response data and methods
      */
-    public parse(url: string, req: http.ServerRequest, res: http.ServerResponse) {
+    public parse(url: string, req: http.IncomingMessage, res: http.ServerResponse) {
 
         if (this._middlewares != null) {
             var length = this._middlewares.length;

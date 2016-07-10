@@ -38,7 +38,7 @@ export interface iOptions {
  * @class Middleware
  * @implements {iMiddleware}
  */
-export class Middleware implements iMiddleware {
+export class Cors implements iMiddleware {
 
     private options: iOptions;
 

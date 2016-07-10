@@ -7,6 +7,9 @@
     },
     "files": [
         "../typings/index.d.ts",
-        "fuhttp.ts"
+        "fuhttp.ts",
+        "middlewares/JsonResponse.ts",
+        "middlewares/Cors.ts",
+        "middlewares/BodyJsonParse.ts"
     ]
 }

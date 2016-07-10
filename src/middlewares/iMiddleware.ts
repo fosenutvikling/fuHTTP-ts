@@ -14,5 +14,5 @@ export interface iMiddleware {
      * @param {http.IncomingMessage} request (description)
      * @param {http.ServerResponse} response (description)
      */
-    alter(request: http.IncomingMessage, response: http.ServerResponse);
+    alter(request: http.IncomingMessage, response: http.ServerResponse): boolean;
 }

@@ -27,7 +27,7 @@ export interface iServerResponse extends http.ServerResponse {
  * @class Middleware
  * @implements {iMiddleware}
  */
-export class Middleware implements iMiddleware {
+export class JsonResponse implements iMiddleware {
     /**
      * Alters the request object
      * 

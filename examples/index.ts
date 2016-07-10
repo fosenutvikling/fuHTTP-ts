@@ -1,9 +1,5 @@
-'use strict';
-
-var fuhttp = require('../');
-var cors = require('../dist/middlewares/Cors');
-var json = require('../dist/middlewares/JsonResponse');
-var form = require('../dist/middlewares/BodyJsonParse');
+import * as fuhttp from '../';
+import {Cors} from '../build/middlewares/Cors';
 
 var r = new fuhttp.Route("app");
 r.get("hello/{name}", function (req, res, name) {
@@ -21,7 +17,5 @@ r.post("post", function (req, res) {
 
 var t = new fuhttp.Server(5000);
 t.addRoute(r);
-t.use(new cors.Cors());
-t.use(new json.JsonResponse());
-t.use(new form.BodyJsonParse());
+t.use(new Cors());
 t.listen();

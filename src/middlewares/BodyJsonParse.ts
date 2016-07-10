@@ -4,7 +4,7 @@ import {iMiddleware} from './iMiddleware';
 import {HTTP_METHODS} from '../Route';
 import * as querystring from 'querystring';
 
-export class Middleware implements iMiddleware {
+export class BodyJsonParse implements iMiddleware {
     public alter(req: iBodyRequest, res: http.ServerResponse) {
 
         if (req.contentType == 'application/x-www-form-urlencode') { // Body is in url form (using & and = for denoting key-value pairs)

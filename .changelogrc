@@ -1,0 +1,46 @@
+  {
+    "app_name": "fuhttp-ts",
+    "logo": "./media/fuhttp.png",
+    "intro": "fuhttp-ts is a http-server written in TypeScript for quickly generating a REST api",
+    "branch": "master",
+    "repo_url": "git@github.com:fosenutvikling/fuHTTP-ts.git",
+    "file": "CHANGELOG.md",
+    "sections": [
+        {
+            "title": "Bug Fixes",
+            "grep": "^fix"
+        },
+        {
+            "title": "Features",
+            "grep": "^feat"
+        },
+        {
+            "title": "Documentation",
+            "grep": "^docs"
+        },
+        {
+            "title": "Refactor",
+            "grep": "^refactor"
+        },
+        {
+            "title": "Style",
+            "grep": "^style"
+        },
+        {
+            "title": "Test",
+            "grep": "^test"
+        },
+        {
+            "title": "Chore",
+            "grep": "^chore"
+        },
+        {
+            "title": "Branchs merged",
+            "grep": "^Merge branch"
+        },
+        {
+            "title" : "Pull requests merged",
+            "grep": "^Merge pull request"
+        }
+    ]
+}

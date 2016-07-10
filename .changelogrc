@@ -16,7 +16,7 @@
         },
         {
             "title": "Documentation",
-            "grep": "^docs"
+            "grep": "^doc"
         },
         {
             "title": "Refactor",

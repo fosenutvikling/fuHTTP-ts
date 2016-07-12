@@ -1,0 +1,8 @@
+node_modules
+documentation
+src
+typings
+typings.json
+Gruntfile.js
+.tscache
+.vscode

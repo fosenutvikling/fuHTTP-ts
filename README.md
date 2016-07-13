@@ -17,7 +17,7 @@ npm install fuhttp-ts
 `fuhttp-ts` can now be included within your project using:
 
 ```js
-var fuhttp = require('fuhttp.ts');
+var fuhttp = require('fuhttp-ts');
 ```
 
 

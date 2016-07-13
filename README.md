@@ -24,7 +24,7 @@ var fuhttp = require('fuhttp.ts');
 ## Manual Installation
 
 Manual installation requires a clone of the repo.
-The project requires [`Grunt`](https://github.com/gruntjs/grunt), [`TypeScript`](https://github.com/Microsoft/TypeScript) and [`typings`](https://github.com/typings/typings) to be installed on the running computer. Please refer to each repo for installation instructions.
+The project requires [Grunt](https://github.com/gruntjs/grunt), [TypeScript](https://github.com/Microsoft/TypeScript) and [typings](https://github.com/typings/typings) to be installed on the running computer. Please refer to each repo for installation instructions.
 
 Install dependencies defined in `package.json` and `typings.json`
 

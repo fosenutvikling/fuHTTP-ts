@@ -12,10 +12,10 @@ const ERROR_KEY_NOTFOUND = 'notfound';
 const ERROR_KEY_OVERFLOW = 'overflow';
 
 export interface iBodyRequest extends http.IncomingMessage {
-    body?: string,
-    fields?: formidable.Fields,
-    files?: formidable.Files,
-    contentType?: string
+    body?: string;
+    fields?: formidable.Fields;
+    files?: formidable.Files;
+    contentType?: string;
 }
 
 /**
@@ -111,27 +111,27 @@ export class Server {
 
         var self = this;
 
-        this.server.on('request', function (request: http.IncomingMessage, response: http.ServerResponse) {
-
-            var body: string = "";
-            request.on('error', function (error) {
+        this.server.on('request', function (request: http.IncomingMessage, response: http.ServerResponse): void {
+            var body = '';
+            request.on('error', function (error: Error): void {
                 self._errorFunctions[ERROR_KEY_REQUEST](error, response);
             });
 
-            response.on('error', function (error) {
+            response.on('error', function (error: Error): void {
                 self._errorFunctions[ERROR_KEY_RESPONSE](error, response);
             });
 
-            if (request.method != "GET" && request.headers['content-length'] != undefined) { // Should parse the body if a POST,PUT or DELETE request is made, with content-length set
+            // Should parse the body if a POST,PUT or DELETE request is made, with content-length set
+            if (request.method !== 'GET' && request.headers['content-length'] != undefined) {
 
                 var contentTypeRaw: string = request.headers['content-type'];
                 var contentType = (contentTypeRaw != undefined) ? contentTypeRaw.slice(0, contentTypeRaw.indexOf(';')) : null;
 
                 (<iBodyRequest>request).contentType = contentType;
 
-                if (contentType == 'multipart/form-data') {
+                if (contentType === 'multipart/form-data') {
                     var form = new formidable.IncomingForm();
-                    form.parse(request, function (error, fields, files) {
+                    form.parse(request, function (error: any, fields: formidable.Fields, files: formidable.Files): any {
 
                         if (error)
                             return request.emit('error', 'Error parsing request body');
@@ -142,14 +142,16 @@ export class Server {
                     });
                 }
                 else {
-                    request.on('data', function (data) {
+                    request.on('data', function (data: Buffer): Function {
                         body += data;
-                        if (body.length > 1e6) { // Prevent flooding of RAM (1mb) http://stackoverflow.com/a/8640308
+
+                        // Prevent flooding of RAM (1mb) http://stackoverflow.com/a/8640308
+                        if (body.length > 1e6) {
                             return self._errorFunctions[ERROR_KEY_OVERFLOW](response);
                         }
                     });
 
-                    request.on('end', function () {
+                    request.on('end', function (): void {
                         (<iBodyRequest>request).body = body;
                         self.routeLookup(request, response);
                     });
@@ -160,7 +162,7 @@ export class Server {
         });
     }
 
-    private routeLookup(request: http.IncomingMessage, response: http.ServerResponse) {
+    private routeLookup(request: http.IncomingMessage, response: http.ServerResponse): void {
         // Load middlewares
         var length = this.middlewares.length;
         for (let i = 0; i < length; ++i)
@@ -198,7 +200,7 @@ export class Server {
      * @param {Function} func function to run on event triggered
      * @returns (description)
      */
-    public on(event: string, func: Function) {
+    public on(event: string, func: Function): boolean {
         switch (event) {
 
             case 'clientError':
@@ -219,7 +221,7 @@ export class Server {
                 return true;
 
             default:
-                throw new Error("Event: " + event + " not recognized");
+                throw new Error('Event: ' + event + ' not recognized');
         }
 
         this.server.on(event, func);
@@ -229,8 +231,8 @@ export class Server {
      * Function to run on a "clientError"
      * https://nodejs.org/api/http.html#http_event_clienterror
      */
-    public set onClientError(func: (error, socket: net.Socket) => void) {
-        this.server.on("clientError", func);
+    public set onClientError(func: (error: Error, socket: net.Socket) => void) {
+        this.server.on('clientError', func);
     }
 
     /**
@@ -254,7 +256,7 @@ export class Server {
      */
     public set onRequestError(func: (error: any, response: http.ServerResponse) => void) {
         if (this._errorFunctions[ERROR_KEY_REQUEST] != undefined)
-            throw new Error("Request error function already set");
+            throw new Error('Request error function already set');
         this._errorFunctions[ERROR_KEY_REQUEST] = func;
     }
 
@@ -263,7 +265,7 @@ export class Server {
      */
     public set onResponseError(func: (error: any, response: http.ServerResponse) => void) {
         if (this._errorFunctions[ERROR_KEY_RESPONSE] != undefined)
-            throw new Error("Response error function already set");
+            throw new Error('Response error function already set');
         this._errorFunctions[ERROR_KEY_RESPONSE] = func;
     }
 
@@ -272,7 +274,7 @@ export class Server {
      */
     public set onNotFoundError(func: (response: http.ServerResponse) => void) {
         if (this._errorFunctions[ERROR_KEY_NOTFOUND] != undefined)
-            throw new Error("Not-Found error function already set");
+            throw new Error('Not-Found error function already set');
         this._errorFunctions[ERROR_KEY_NOTFOUND] = func;
     }
 
@@ -291,7 +293,7 @@ export class Server {
      * 
      * @param {Route} route object to add
      */
-    public addRoute(route: Route) {
+    public addRoute(route: Route): void {
         if (this.routes[route.routeName] === undefined)
             this.routes[route.routeName] = route;
         else
@@ -306,7 +308,7 @@ export class Server {
      * @param {string} path (routeName which `route` will be made accessible
      * @param {Route} route object to add
      */
-    public add(path: string, route: Route) {
+    public add(path: string, route: Route): void {
         route.routeName = path;
         this.addRoute(route);
     }
@@ -316,7 +318,7 @@ export class Server {
      * 
      * @param {iMiddleware} middleware to be added
      */
-    public use(middleware: iMiddleware) {
+    public use(middleware: iMiddleware): void {
         this._middlewares.push(middleware);
     }
 
@@ -345,13 +347,13 @@ export class Server {
      * Start the http-server, for accepting incomming connections on the
      * given port and hostname
      */
-    public listen() {
+    public listen(): void {
 
-        if (Object.keys(this.routes).length == 0)
-            throw new Error("No routes added, and no connections will therefore be accepted.");
+        if (Object.keys(this.routes).length === 0)
+            throw new Error('No routes added, and no connections will therefore be accepted.');
 
         if (this._errorFunctions[ERROR_KEY_REQUEST] == undefined)
-            this._errorFunctions[ERROR_KEY_REQUEST] = function (error: any, response: http.ServerResponse) {
+            this._errorFunctions[ERROR_KEY_REQUEST] = function (error: Error, response: http.ServerResponse): void {
                 console.error(error.stack);
                 response.setHeader('Content-Type', 'text/html');
                 response.statusCode = 400;
@@ -359,40 +361,40 @@ export class Server {
                 response.write('Error: ' + error);
                 response.write('The Request Error function is not set. It can be set using the appropriate function (onRequestError)');
                 response.end();
-            }
+            };
 
         if (this._errorFunctions[ERROR_KEY_RESPONSE] == undefined)
-            this._errorFunctions[ERROR_KEY_RESPONSE] = function (error: any, response: http.ServerResponse) {
+            this._errorFunctions[ERROR_KEY_RESPONSE] = function (error: Error, response: http.ServerResponse): void {
                 console.error(error.stack);
                 response.setHeader('Content-Type', 'text/html');
-                response.statusCode = 444; // nging specific error code
+                response.statusCode = 444; // NGINX specific error code
                 response.statusMessage = 'No Response';
                 response.write('The Response Error function is not set. It can be set using the appropriate function (onResponseError)');
                 response.end();
-            }
+            };
 
         if (this._errorFunctions[ERROR_KEY_NOTFOUND] == undefined)
-            this._errorFunctions[ERROR_KEY_NOTFOUND] = function (response: http.ServerResponse) {
+            this._errorFunctions[ERROR_KEY_NOTFOUND] = function (response: http.ServerResponse): void {
                 response.setHeader('Content-Type', 'text/html');
                 response.statusCode = 404;
                 response.statusMessage = 'Not Found';
                 response.write('The Not Found Error function is not set. It can be set using the appropriate function (onNotFoundError)');
                 response.end();
-            }
+            };
 
         if (this._errorFunctions[ERROR_KEY_OVERFLOW] == undefined)
-            this._errorFunctions[ERROR_KEY_OVERFLOW] = function (response: http.ServerResponse) {
+            this._errorFunctions[ERROR_KEY_OVERFLOW] = function (response: http.ServerResponse): void {
                 response.setHeader('Content-Type', 'text/html');
                 response.statusCode = 413;
                 response.statusMessage = 'Request Entity Too Large';
                 response.write('The Overflow Error function is not set. It can be set using the appropriate function (onOverflowError)');
                 response.end();
-            }
+            };
 
         Route.onError = <(response: http.ServerResponse) => void>this._errorFunctions[ERROR_KEY_NOTFOUND];
 
         this.server.listen(this.port, this.hostname);
-        console.log("STARTED SERVER ON PORT: " + this.port + " AND LISTENING ON: " + this.hostname);
+        console.log('STARTED SERVER ON PORT: ' + this.port + ' AND LISTENING ON: ' + this.hostname);
         this.connected = true;
     }
 }

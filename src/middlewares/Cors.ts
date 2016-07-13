@@ -15,19 +15,19 @@ export interface iOptions {
      * 
      * @type {boolean}
      */
-    cookies?: boolean,
+    cookies?: boolean;
     /**
      * Supported http-methods for a route, defaults to current request method
      * 
      * @type {HTTP_METHODS[]}
      */
-    methods?: HTTP_METHODS[],
+    methods?: HTTP_METHODS[];
     /**
      * How many seconds a response to be cached for CORS
      * 
      * @type {number}
      */
-    maxage?: number
+    maxage?: number;
 }
 
 /**
@@ -58,22 +58,22 @@ export class Cors implements iMiddleware {
      * @param {http.IncomingMessage} req (description)
      * @param {http.ServerResponse} res (description)
      */
-    public alter(req: http.IncomingMessage, res: http.ServerResponse) {
+    public alter(req: http.IncomingMessage, res: http.ServerResponse): boolean {
         var headers = req.headers;
         var origin: string;
 
         if (this.options.methods == null)
             this.options.methods = [<HTTP_METHODS>req.method];
 
-        var origin = (req.headers != null && req.headers.origin != null) ? <string>req.headers.origin : "*";
+        origin = (req.headers != null && req.headers.origin != null) ? <string>req.headers.origin : '*';
         res.setHeader('Access-Control-Allow-Origin', origin);
 
         if (this.options.methods != null)
             res.setHeader('Access-Control-Request-Method', this.options.methods.toString()); // Required, allowed methods for path
-        if (this.options.cookies)
-            res.setHeader('Access-Control-Allow-Credentials', 'true'); // Optional, allows storing cookies
-        if (this.options.maxage)
-            res.setHeader('Access-Control-Max-Age', this.options.maxage.toString()); // Optional, allows preflight response to be cached, preventing an OPTIONS request for each http-request
+        if (this.options.cookies) // Optional, allows storing cookies
+            res.setHeader('Access-Control-Allow-Credentials', 'true');
+        if (this.options.maxage) // Optional, allows preflight response to be cached, preventing an OPTIONS request for each http-request
+            res.setHeader('Access-Control-Max-Age', this.options.maxage.toString());
         return true;
     }
 }

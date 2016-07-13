@@ -1,13 +1,13 @@
 {
   "name": "fuhttp-ts",
-  "version": "0.1.1",
+  "version": "0.1.31",
   "description": "a HTTP-server written in TypeScript using Node.js",
-  "main": "dist/fuhttp.js",
+  "main": "build/fuhttp.js",
   "typings": "build/fuhttp",
   "scripts": {
-    "postinstall": "npm install && typings install && npm run rebuild",
+    "prepublish": "npm run rebuild",
     "typedoc": "cd ./src/ && typedoc ./ --out ../documentation/ --tsconfig ./tsconfig.json --media ../media --target es5",
-    "rebuild": "rm -rf ./dist/ && rm -rf ./build/ && grunt build",
+    "rebuild": "rm -rf ./build/ && grunt build",
     "test": "echo \"Error: no test specified\" && exit 1"
   },
   "repository": {
@@ -31,7 +31,7 @@
   },
   "devDependencies": {
     "grunt": "^1.0.1",
-    "grunt-contrib-uglify": "^1.0.1",
+    "grunt-banner": "^0.6.0",
     "grunt-ts": "^5.5.1"
   }
 }

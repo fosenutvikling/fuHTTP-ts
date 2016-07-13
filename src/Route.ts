@@ -3,7 +3,7 @@ import * as http from 'http';
 import {Server, iBodyRequest} from './Server';
 import {iMiddleware} from './middlewares/iMiddleware';
 
-export type HTTP_METHODS = "GET" | "POST" | "PUT" | "DELETE";
+export type HTTP_METHODS = 'GET' | 'POST' | 'PUT' | 'DELETE';
 
 /**
  * The Route class for parsing and matching incoming http-requests
@@ -62,7 +62,6 @@ export class Route {
 
     private _putRoute: CrossroadsJs.CrossRoadsStatic;
 
-
     /**
      * Middlewares to be run before a route
      * 
@@ -86,7 +85,7 @@ export class Route {
      * @param {string} url the string a url need to match against for running `func`
      * @param {(req: http.IncomingMessage, res: http.ServerResponse, ...params: any[]) => void} func Function to call when a route is successfully matched
      */
-    public get(url: string, func: (req: http.IncomingMessage, res: http.ServerResponse, ...params: any[]) => void) {
+    public get(url: string, func: (req: http.IncomingMessage, res: http.ServerResponse, ...params: any[]) => void): void {
         if (this._getRoute == null)
             this._getRoute = this.createRoute();
         this._getRoute.addRoute(url, func);
@@ -98,7 +97,7 @@ export class Route {
      * @param {string} url the string a url need to match against for running `func`
      * @param {(req: http.iBodyRequest, res: http.ServerResponse, ...params: any[]) => void} func Function to call when a route is successfully matched
      */
-    public post(url: string, func: (req: iBodyRequest, res: http.ServerResponse, ...params: any[]) => void) {
+    public post(url: string, func: (req: iBodyRequest, res: http.ServerResponse, ...params: any[]) => void): void {
         if (this._postRoute == null)
             this._postRoute = this.createRoute();
         this._postRoute.addRoute(url, func);
@@ -110,7 +109,7 @@ export class Route {
      * @param {string} url the string a url need to match against for running `func`
      * @param {(req: http.iBodyRequest, res: http.ServerResponse, ...params: any[]) => void} func Function to call when a route is successfully matched
      */
-    public put(url: string, func: (req: iBodyRequest, res: http.ServerResponse, ...params: any[]) => void) {
+    public put(url: string, func: (req: iBodyRequest, res: http.ServerResponse, ...params: any[]) => void): void {
         if (this._putRoute == null)
             this._putRoute = this.createRoute();
         this._putRoute.addRoute(url, func);
@@ -122,7 +121,7 @@ export class Route {
      * @param {string} url the string a url need to match against for running `func`
      * @param {(req: http.iBodyRequest, res: http.ServerResponse, ...params: any[]) => void} func Function to call when a route is successfully matched
      */
-    public delete(url: string, func: (req: iBodyRequest, res: http.ServerResponse, ...params: any[]) => void) {
+    public delete(url: string, func: (req: iBodyRequest, res: http.ServerResponse, ...params: any[]) => void): void {
         if (this._deleteRoute == null)
             this._deleteRoute = this.createRoute();
         this._deleteRoute.addRoute(url, func);
@@ -135,38 +134,39 @@ export class Route {
      * @param {http.IncomingMessage} req http-request data for accessing recevied data from a client
      * @param {http.ServerResponse} res http-response data and methods
      */
-    public parse(url: string, req: http.IncomingMessage, res: http.ServerResponse) {
+    public parse(url: string, req: http.IncomingMessage, res: http.ServerResponse): void {
 
         if (this._middlewares != null) {
+            // Should stop processing of data if a middleware fails, to prevent setting headers if already changed by a middleware throwing an error
             var length = this._middlewares.length;
             for (let i = 0; i < length; ++i)
                 if (!this._middlewares[i].alter(req, res))
-                    return; // Should stop processing of data if a middleware fails, to prevent setting headers if already changed by a middleware throwing an error
+                    return;
         }
 
-        switch (req.method) {
+        switch (<HTTP_METHODS>req.method) {
             default:
-            case "GET":
+            case 'GET':
                 if (this._getRoute == null)
-                    throw new Error("getRoute == null");
-                this._getRoute.parse(url, [req, res]);//not able to parse here :(
+                    throw new Error('getRoute == null');
+                this._getRoute.parse(url, [req, res]); // Not able to parse here :(
                 break;
 
-            case "POST":
+            case 'POST':
                 if (this._postRoute == null)
-                    throw new Error("postRoute == null");
+                    throw new Error('postRoute == null');
                 this._postRoute.parse(url, [req, res]);
                 break;
 
-            case "PUT":
+            case 'PUT':
                 if (this._putRoute == null)
-                    throw new Error("putRoute == null");
+                    throw new Error('putRoute == null');
                 this._putRoute.parse(url, [req, res]);
                 break;
 
-            case "DELETE":
+            case 'DELETE':
                 if (this._deleteRoute == null)
-                    throw new Error("deleteRoute == null");
+                    throw new Error('deleteRoute == null');
                 this._deleteRoute.parse(url, [req, res]);
                 break;
         }
@@ -181,7 +181,7 @@ export class Route {
     private createRoute(): CrossroadsJs.CrossRoadsStatic {
         var route = crossroads.create();
         route.ignoreState = true;
-        route.bypassed.add(function (request: http.ServerRequest, response: http.ServerResponse) {
+        route.bypassed.add(function (request: http.ServerRequest, response: http.ServerResponse): void {
             Route.errorRoute(response);
             response.end();
         });
@@ -200,18 +200,16 @@ export class Route {
         this._routeName = route;
     }
 
-
     /**
      * Appends a middleware to the route
      * 
      * @param {iMiddleware} middleware to use
      */
-    public use(middleware: iMiddleware) {
+    public use(middleware: iMiddleware): void {
         if (this._middlewares == null)
             this._middlewares = <[iMiddleware]>[];
         this._middlewares.push(middleware);
     }
-
 
     /**
      * Retrieves all registered middlewares

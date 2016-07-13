@@ -16,7 +16,7 @@ export interface iServerResponse extends http.ServerResponse {
      * @see Middleware
      * @type {(data: {}) => void}
      */
-    json: (data: {}) => void
+    json: (data: {}) => void;
 }
 
 /**
@@ -34,8 +34,8 @@ export class JsonResponse implements iMiddleware {
      * @param {http.IncomingMessage} req (description)
      * @param {http.ServerResponse} res (description)
      */
-    public alter(req: http.IncomingMessage, res: http.ServerResponse) {
-        (<iServerResponse>res).json = function (data: {}) {
+    public alter(req: http.IncomingMessage, res: http.ServerResponse): boolean {
+        (<iServerResponse>res).json = function (data: {}): void {
             try {
                 var strJson = JSON.stringify(data);
 
@@ -47,7 +47,7 @@ export class JsonResponse implements iMiddleware {
                 res.setHeader('Content-Type', 'text/html');
                 res.statusCode = 500;
                 res.statusMessage = 'Invalid JSON';
-                res.write("Couldn't parse json data");
+                res.write('Couldn\'t parse json data');
             }
 
             res.end();

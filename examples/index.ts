@@ -12,7 +12,7 @@ r.get("", function (req, res) {
 });
 
 r.post("post", function (req, res) {
-    res.json({ "json": "data",body:req.body });
+    res.json({ "json": "data", body: req.body });
 });
 
 var t = new fuhttp.Server(5000);

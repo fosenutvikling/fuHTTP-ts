@@ -1,11 +1,11 @@
 {
   "name": "fuhttp-ts",
-  "version": "0.1.31",
+  "version": "0.2.0",
   "description": "a HTTP-server written in TypeScript using Node.js",
   "main": "build/fuhttp.js",
-  "typings": "build/fuhttp",
+  "typings": "build/fuhttp.d.ts",
   "scripts": {
-    "prepublish": "npm run rebuild",
+    "prepublish": "typings install && npm run rebuild",
     "typedoc": "cd ./src/ && typedoc ./ --out ../documentation/ --tsconfig ./tsconfig.json --media ../media --target es5",
     "rebuild": "rm -rf ./build/ && grunt build",
     "test": "echo \"Error: no test specified\" && exit 1"

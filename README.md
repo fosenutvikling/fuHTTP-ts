@@ -14,11 +14,19 @@ Install the package
 npm install fuhttp-ts
 ```
 
-`fuhttp-ts` can now be included within your project using:
+`fuhttp-ts` can now be included within your nodejs project using:
 
 ```js
 var fuhttp = require('fuhttp-ts');
 ```
+
+For TypeScript:
+
+```ts
+import * as fuhttp from 'fuhttp-ts';
+```
+
+You may also be required to include the `typings/index.d.ts` in your `typings.json` file to be able to compile your project when using `fuhttp-ts`.
 
 
 ## Manual Installation
@@ -104,7 +112,7 @@ server.listen(); // Start listening for incoming requests
 
 - [ ] Support for [`connect`](https://github.com/senchalabs/connect) middlewares
 - [x] `POST`, `PUT` and `DELETE` body data parsing
-- [ ] Publish as `npm` package
+- [x] Publish as `npm` package
 - [ ] Testing, mochajs?
 
 

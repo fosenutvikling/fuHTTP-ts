@@ -1,7 +1,7 @@
 import * as crossroads from 'crossroads';
 import * as http from 'http';
-import {Server, iBodyRequest} from './Server';
-import {iMiddleware} from './middlewares/iMiddleware';
+import { Server, iBodyRequest } from './Server';
+import { iMiddleware } from './middlewares/iMiddleware';
 
 export type HTTP_METHODS = 'GET' | 'POST' | 'PUT' | 'DELETE';
 
@@ -88,7 +88,7 @@ export class Route {
     public get(url: string, func: (req: http.IncomingMessage, res: http.ServerResponse, ...params: any[]) => void): void {
         if (this._getRoute == null)
             this._getRoute = this.createRoute();
-        this._getRoute.addRoute(url, func);
+        this.addRoute(this._getRoute, url, func);
     }
 
     /**
@@ -100,7 +100,7 @@ export class Route {
     public post(url: string, func: (req: iBodyRequest, res: http.ServerResponse, ...params: any[]) => void): void {
         if (this._postRoute == null)
             this._postRoute = this.createRoute();
-        this._postRoute.addRoute(url, func);
+        this.addRoute(this._postRoute, url, func);
     }
 
     /**
@@ -112,7 +112,16 @@ export class Route {
     public put(url: string, func: (req: iBodyRequest, res: http.ServerResponse, ...params: any[]) => void): void {
         if (this._putRoute == null)
             this._putRoute = this.createRoute();
-        this._putRoute.addRoute(url, func);
+        this.addRoute(this._putRoute, url, func);
+    }
+
+    private addRoute(
+        routeType: CrossroadsJs.CrossRoadsStatic,
+        url: string,
+        func: (req: iBodyRequest, res: http.ServerResponse, ...params: any[]) => void): void {
+
+        url = this.removeTrailingSlash(url);
+        routeType.addRoute(url, func);
     }
 
     /**
@@ -143,13 +152,14 @@ export class Route {
                 if (!this._middlewares[i].alter(req, res))
                     return;
         }
+        url = this.removeTrailingSlash(url);
 
         switch (<HTTP_METHODS>req.method) {
             default:
             case 'GET':
                 if (this._getRoute == null)
                     throw new Error('getRoute == null');
-                this._getRoute.parse(url, [req, res]); // Not able to parse here :(
+                this._getRoute.parse(url, [req, res]);
                 break;
 
             case 'POST':
@@ -170,6 +180,21 @@ export class Route {
                 this._deleteRoute.parse(url, [req, res]);
                 break;
         }
+    }
+
+    /**
+     * Remove last trailing slash
+     * For route matching: 'users' and 'users/' should be mapped to the same route
+     * @private
+     * @param {string} str input string to remove trailing slash from
+     * @returns 
+     * 
+     * @memberOf Route
+     */
+    private removeTrailingSlash(str: string) {
+        if (str[str.length - 1] === '/')
+            return str.substring(0, str.length - 1);
+        return str;
     }
 
     /**

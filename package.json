@@ -5,9 +5,12 @@
   "main": "build/fuhttp.js",
   "typings": "build/fuhttp.d.ts",
   "scripts": {
-    "prepublish": "typings install && npm run rebuild",
+    "prepublish": "npm run rebuild",
     "typedoc": "cd ./src/ && typedoc ./ --out ../documentation/ --tsconfig ./tsconfig.json --media ../media --target es5",
-    "rebuild": "rm -rf ./build/ && grunt build",
+    "rebuild": "rm -rf ./build/ && npm run build",
+    "build": "npm run build:ts && npm run banner",
+    "build:ts": "./node_modules/.bin/tsc -p ./src/tsconfig.json",
+    "banner": "node tasks/addBanner.js",
     "test": "echo \"Error: no test specified\" && exit 1"
   },
   "repository": {
@@ -20,6 +23,7 @@
     "http"
   ],
   "author": "Jonas Kirkemyr <jonas@fosen-utvikling.no> (http://fosen-utvikling.no)",
+  "company": "Fosen-Utvikling AS (http://fosen-utvikling.no)",
   "license": "MIT",
   "bugs": {
     "url": "https://github.com/fosenutvikling/fuHTTP-ts/issues"
@@ -30,8 +34,10 @@
     "formidable": "^1.0.17"
   },
   "devDependencies": {
-    "grunt": "^1.0.1",
-    "grunt-banner": "^0.6.0",
-    "grunt-ts": "^5.5.1"
+    "@types/crossroads": "0.0.29",
+    "@types/formidable": "^1.0.29",
+    "@types/node": "^7.0.13",
+    "add-banner": "git+https://github.com/jonschlinkert/add-banner.git",
+    "typescript": "^2.2.2"
   }
 }

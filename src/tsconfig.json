@@ -2,11 +2,19 @@
     "compilerOptions": {
         "target": "es5",
         "module": "commonjs",
+        "outDir": "../build/",
+        "typeRoots": [
+            "node_modules/@types"
+        ],
         "removeComments": false,
-        "noImplicitAny": false
+        "emitDecoratorMetadata": true,
+        "noImplicitAny": false,
+        "declaration": true,
+        "sourceMap": true,
+        "moduleResolution": "node",
+        "listFiles": true
     },
     "files": [
-        "../typings/index.d.ts",
         "fuhttp.ts"
     ]
 }

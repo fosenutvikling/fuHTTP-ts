@@ -30,11 +30,10 @@
   },
   "homepage": "https://github.com/fosenutvikling/fuHTTP-ts#readme",
   "dependencies": {
-    "crossroads": "^0.12.2",
-    "formidable": "^1.0.17"
+    "formidable": "^1.0.17",
+    "url-pattern": "^1.0.3"
   },
   "devDependencies": {
-    "@types/crossroads": "0.0.29",
     "@types/formidable": "^1.0.29",
     "@types/node": "^7.0.13",
     "add-banner": "git+https://github.com/jonschlinkert/add-banner.git",

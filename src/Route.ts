@@ -190,6 +190,7 @@ export class Route {
             throw new Error('searchRoute == null, should never occur');
         }
 
+        // Call Error Route, if no match is found
         if (!this.hasMatchingRoute(searchRoute, parsedUrl, req, res))
             Route.errorRoute(res);
     }

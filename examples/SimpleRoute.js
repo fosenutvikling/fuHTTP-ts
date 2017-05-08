@@ -1,11 +1,17 @@
 'use strict';
-
+//TODO: use some tests with artillery
 var fuhttp = require('../');
 
 var route = new fuhttp.Route('api');
 route.get("hello/:name", function (req, res, name) {
     console.log("GET: Hello " + name);
     res.write("hello " + name);
+    res.end();
+});
+
+route.get("hello/:name/mellow", function (req, res, name) {
+    console.log("GET MELLOW: Hello " + name);
+    res.write("hello MELLOW " + name);
     res.end();
 });
 

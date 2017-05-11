@@ -134,7 +134,7 @@ export class Route {
         func: (req: iBodyRequest | http.IncomingMessage, res: http.ServerResponse, ...params: any[]) => void): void {
 
         requestUrl = this.removeTrailingSlash(requestUrl);
-        if (requestUrl[0] != '/') requestUrl = '/' + requestUrl;
+        if (requestUrl[0] !== '/') requestUrl = '/' + requestUrl;
 
         routeType.push(new UrlMatcher(requestUrl, func));
     }
@@ -213,7 +213,7 @@ export class Route {
      * 
      * @memberOf Route
      */
-    private removeTrailingSlash(str: string) {
+    private removeTrailingSlash(str: string): string {
         if (str[str.length - 1] === '/')
             return str.substring(0, str.length - 1);
         return str;
@@ -239,6 +239,39 @@ export class Route {
         if (this._middlewares == null)
             this._middlewares = <[iMiddleware]>[];
         this._middlewares.push(middleware);
+    }
+
+    /**
+     * Appends an existing route to {this} routes
+     * If the route doesn't contain a {routeName}, it is up to the developer to make sure no routes will overlap, as it will result in the last added route to 
+     * never match!
+     * 
+     * @param {Route} route 
+     * 
+     * @memberOf Route
+     */
+    public add(route: Route): void {
+        var prefix = route.routeName || '';
+
+        if (route._getRoute != null) {
+            for (let i = 0; i < route._getRoute.length; ++i)
+                this.get(prefix + route._getRoute[i].pattern, route._getRoute[i].callback);
+        }
+
+        if (route._postRoute != null) {
+            for (let i = 0; i < route._postRoute.length; ++i)
+                this.post(prefix + route._postRoute[i].pattern, route._postRoute[i].callback);
+        }
+
+        if (route._putRoute != null) {
+            for (let i = 0; i < route._putRoute.length; ++i)
+                this.put(prefix + route._putRoute[i].pattern, route._putRoute[i].callback);
+        }
+
+        if (route._deleteRoute != null) {
+            for (let i = 0; i < route._deleteRoute.length; ++i)
+                this.delete(prefix + route._deleteRoute[i].pattern, route._deleteRoute[i].callback);
+        }
     }
 
     /**

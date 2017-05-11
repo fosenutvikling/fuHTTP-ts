@@ -10,14 +10,14 @@ const PATTERN_OPTIONS = {
 
 export class UrlMatcher {
 
-    private pattern: string;
-    private callback: (req: iBodyRequest | http.IncomingMessage, res: http.ServerResponse, ...params: any[]) => void;
+    private _pattern: string;
+    private _callback: (req: iBodyRequest | http.IncomingMessage, res: http.ServerResponse, ...params: any[]) => void;
     private urlPattern: UrlPattern;
     private _hasQuery: boolean;
 
     public constructor(pattern: string, callback: (req: iBodyRequest | http.IncomingMessage, res: http.ServerResponse, ...params: any[]) => void) {
-        this.pattern = pattern;
-        this.callback = callback;
+        this._pattern = pattern;
+        this._callback = callback;
         this._hasQuery = false;
 
         this.initialize();
@@ -25,14 +25,14 @@ export class UrlMatcher {
 
     private initialize(): void {
         this.checkPatternForQuery();
-        this.urlPattern = new UrlPattern(this.pattern, PATTERN_OPTIONS);
+        this.urlPattern = new UrlPattern(this._pattern, PATTERN_OPTIONS);
     }
 
     private checkPatternForQuery(): void {
-        let queryPosition = this.pattern.lastIndexOf(QUERY_SYMBOL);
+        let queryPosition = this._pattern.lastIndexOf(QUERY_SYMBOL);
         if (queryPosition >= 0) {
             this._hasQuery = true;
-            this.pattern = this.pattern.substring(0, queryPosition);
+            this._pattern = this._pattern.substring(0, queryPosition);
         }
     }
 
@@ -52,7 +52,7 @@ export class UrlMatcher {
             return false;
 
         let parameters = this.createCallbackParameterArray(parsedUrlData, query);
-        this.callback.apply(null, [request, response].concat(parameters));
+        this._callback.apply(null, [request, response].concat(parameters));
 
         return true;
     }
@@ -76,5 +76,13 @@ export class UrlMatcher {
             parameterArray.push(query);
 
         return parameterArray;
+    }
+
+    public get pattern(): string {
+        return this._pattern;
+    }
+
+    public get callback(): (req: iBodyRequest | http.IncomingMessage, res: http.ServerResponse, ...params: any[]) => void {
+        return this._callback;
     }
 }

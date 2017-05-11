@@ -2,7 +2,9 @@ export * from './Server';
 export * from './Route';
 export * from './middlewares/iMiddleware';
 
+export * from './HttpResponse';
+
 // middlewares
-export {Cors} from './middlewares/Cors';
-export {BodyJsonParse} from './middlewares/BodyJsonParse';
-export {iServerResponse, JsonResponse} from './middlewares/JsonResponse';
+export { Cors } from './middlewares/Cors';
+export { BodyJsonParse } from './middlewares/BodyJsonParse';
+export { iServerResponse, JsonResponse } from './middlewares/JsonResponse';

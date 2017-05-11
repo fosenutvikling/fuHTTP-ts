@@ -88,12 +88,8 @@ export class Route {
      */
     public get(requestUrl: string, func: (req: http.IncomingMessage, res: http.ServerResponse, ...params: any[]) => void): void {
         if (this._getRoute == null)
-            this._getRoute = this.createRoute();
-        this._getRoute.addRoute(url, func);
             this._getRoute = [];
         this.addRoute(this._getRoute, requestUrl, func);
-            this._getRoute = this.createRoute();
-        this.addRoute(this._getRoute, url, func);
     }
 
     /**
@@ -214,16 +210,6 @@ export class Route {
      * @private
      * @param {string} str input string to remove trailing slash from
      * @returns 
-     * 
-     * @memberOf Route
-     */
-    private removeTrailingSlash(str: string) {
-        if (str[str.length - 1] === '/')
-            return str.substring(0, str.length - 1);
-        return str;
-    }
-
-    /**
      * 
      * @memberOf Route
      */

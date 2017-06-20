@@ -6,7 +6,7 @@
   "typings": "build/fuhttp.d.ts",
   "scripts": {
     "prepublish": "npm run rebuild",
-    "typedoc": "cd ./src/ && typedoc ./ --out ../documentation/ --tsconfig ./tsconfig.json --media ../media --target es5",
+    "typedoc": "./node_modules/.bin/typedoc ./ --out documentation/ --tsconfig src/tsconfig.json --media ./media --target es5 --module commonjs --theme minimal --gitRevision master --mode file",
     "rebuild": "rm -rf ./build/ && npm run build",
     "build": "npm run build:ts && npm run banner",
     "build:ts": "./node_modules/.bin/tsc -p ./src/tsconfig.json",
@@ -37,6 +37,7 @@
     "@types/formidable": "^1.0.29",
     "@types/node": "^7.0.13",
     "add-banner": "git+https://github.com/jonschlinkert/add-banner.git",
+    "typedoc": "^0.6.0",
     "typescript": "^2.2.2"
   }
 }

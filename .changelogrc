@@ -2,7 +2,7 @@
     "app_name": "fuhttp-ts",
     "logo": "./media/fuhttp.png",
     "intro": "fuhttp-ts is a http-server written in TypeScript for quickly generating a REST api",
-    "branch": "master",
+    "branch": "",
     "repo_url": "git@github.com:fosenutvikling/fuHTTP-ts.git",
     "file": "CHANGELOG.md",
     "sections": [

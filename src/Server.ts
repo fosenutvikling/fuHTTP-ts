@@ -1,9 +1,9 @@
-import {Route} from './Route';
+import { Route } from './Route';
 import * as url from 'url';
 import * as net from 'net';
 import * as http from 'http';
 import * as formidable from 'formidable';
-import {iMiddleware} from './middlewares/iMiddleware';
+import { iMiddleware } from './middlewares/iMiddleware';
 
 // Keys stored in `_errorFunctions` of the Server class
 const ERROR_KEY_REQUEST = 'request';
@@ -161,7 +161,18 @@ export class Server {
                 self.routeLookup(request, response);
         });
     }
-
+    
+    /**
+     * Look up route based on request url. 
+     * Will load any middlewares if defined. 
+     * If no routes are found, the `ERROR_KEY_NOTFOUND` error functions will be called
+     * 
+     * @private
+     * @param {http.IncomingMessage} request 
+     * @param {http.ServerResponse} response 
+     * @returns {void} 
+     * 
+     */
     private routeLookup(request: http.IncomingMessage, response: http.ServerResponse): void {
         // Load middlewares
         var length = this.middlewares.length;
@@ -193,12 +204,12 @@ export class Server {
     }
 
     /**
-     * Set functions to run on triggered events, either by the 
-     * server 
+     * Set functions to run on triggered events
      * 
      * @param {string} event to listen for
      * @param {Function} func function to run on event triggered
-     * @returns (description)
+     * @returns Whether event added successfully for listening
+     * @throws Error if the provided event argument cannot be added as eventListener
      */
     public on(event: string, func: Function): boolean {
         switch (event) {
@@ -346,6 +357,7 @@ export class Server {
     /**
      * Start the http-server, for accepting incomming connections on the
      * given port and hostname
+     * @throws Error If no Routes are added before starting HTTP-server
      */
     public listen(): void {
 

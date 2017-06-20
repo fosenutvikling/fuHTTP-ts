@@ -1,0 +1,45 @@
+config:
+    target: 'http://localhost:5000/api'
+    phases:
+        -
+            duration: 60
+            arrivalRate: 150
+    http:
+        timeout: 10
+        pool: 10
+    payload:
+        path: "artilleryData.csv"
+        fields:
+            - "name"
+scenarios:
+  -
+    name: "Get Name"
+    flow:
+      -
+        get:
+          url: "/hello/{{name}}"
+        post:
+          url: "/hello/{{name}}"
+        put:
+          url: "/hello/{{name}}"
+        delete:
+          url: "/hello/{{name}}"
+  -
+    name: "Is ok?"
+    flow:
+      -
+        get:
+          url: "/ok"
+
+
+          /*
+                -
+            duration: 60
+            arrivalRate: 5
+        - 
+          duration: 120
+          arrivalRate: 5
+          rampTo: 50
+        - 
+          duration: 600
+          arrivalRate: 50*/

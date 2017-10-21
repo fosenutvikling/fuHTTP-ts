@@ -11,7 +11,7 @@
     "build": "npm run build:ts && npm run banner",
     "build:ts": "./node_modules/.bin/tsc -p ./src/tsconfig.json",
     "banner": "node tasks/addBanner.js",
-    "test": "echo \"Error: no test specified\" && exit 1"
+    "test": "mocha -r ts-node/register tests/*.ts"
   },
   "repository": {
     "type": "git",
@@ -34,9 +34,17 @@
     "url-pattern": "^1.0.3"
   },
   "devDependencies": {
+    "@types/chai": "^4.0.4",
+    "@types/chai-spies": "0.0.0",
     "@types/formidable": "^1.0.29",
+    "@types/mocha": "^2.2.43",
     "@types/node": "^7.0.13",
     "add-banner": "git+https://github.com/jonschlinkert/add-banner.git",
+    "chai": "^4.1.2",
+    "chai-spies": "^0.7.1",
+    "mocha": "^4.0.1",
+    "mock-req": "^0.2.0",
+    "ts-node": "^3.3.0",
     "typedoc": "^0.6.0",
     "typescript": "^2.2.2"
   }

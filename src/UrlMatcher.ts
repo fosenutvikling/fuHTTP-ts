@@ -37,7 +37,7 @@ export class UrlMatcher {
     }
 
     public get hasQuery(): boolean {
-        return this.hasQuery;
+        return this._hasQuery;
     }
 
     public isMatch(url: string, query: object = null, request: http.IncomingMessage, response: http.ServerResponse): boolean | any[] {
@@ -52,6 +52,11 @@ export class UrlMatcher {
             return false;
 
         let parameters = this.createCallbackParameterArray(parsedUrlData, query);
+        
+        // Prevent error for applying 
+        if (this._callback == null)
+            throw new Error('Callback function == null, not able to call function');
+
         this._callback.apply(null, [request, response].concat(parameters));
 
         return true;

@@ -78,6 +78,7 @@ export class Route {
      */
     public constructor(routeName: string = null) {
         this._routeName = routeName;
+        this._middlewares = <[iMiddleware]>[];
     }
 
     /**
@@ -133,28 +134,25 @@ export class Route {
         requestUrl: string,
         func: (req: iBodyRequest | http.IncomingMessage, res: http.ServerResponse, ...params: any[]) => void): void {
 
-        requestUrl = this.removeTrailingSlash(requestUrl);
-        if (requestUrl[0] !== '/') requestUrl = '/' + requestUrl;
+        requestUrl = Route.fixRequestUrlForAdding(requestUrl);
 
         routeType.push(new UrlMatcher(requestUrl, func));
     }
 
     /**
-     * Check whether the `url` matches a registered route
+     * Check whether the `url` matches a registered route.
+     * Returns a boolean value whether a route is found or not
      * 
      * @param {string} requestUrl to check routes against
      * @param {http.IncomingMessage} req http-request data for accessing recevied data from a client
      * @param {http.ServerResponse} res http-response data and methods
      */
-    public parse(routeUrl: string, req: http.IncomingMessage, res: http.ServerResponse): void {
-        if (this._middlewares != null) {
-            // Should stop processing of data if a middleware fails, to prevent setting headers if already changed by a middleware throwing an error
-            var length = this._middlewares.length;
-            for (let i = 0; i < length; ++i)
-                if (!this._middlewares[i].alter(req, res))
-                    return;
-        }
-        routeUrl = this.removeTrailingSlash(routeUrl);
+    public parse(routeUrl: string, req: http.IncomingMessage, res: http.ServerResponse): boolean {
+        // Should stop processing of data if a middleware fails, to prevent setting headers if already changed by a middleware throwing an error
+        if (!this.runMiddlewares(req, res))
+            return false;
+
+        routeUrl = Route.fixRequestUrlForAdding(routeUrl);
         let parsedUrl = url.parse(routeUrl); // Parsing the routeUrl helps in splitting its pathname, and parse the querystring, if any
 
         let searchRoute: UrlMatcher[] = null;
@@ -186,13 +184,22 @@ export class Route {
                 break;
         }
 
-        if (searchRoute == null) {
+        if (searchRoute == null)
             throw new Error('searchRoute == null, should never occur');
-        }
 
         // Call Error Route, if no match is found
-        if (!this.hasMatchingRoute(searchRoute, parsedUrl, req, res))
+        if (!this.hasMatchingRoute(searchRoute, parsedUrl, req, res)) {
             Route.errorRoute(res);
+            return false;
+        }
+        return true;
+    }
+
+    private runMiddlewares(req: http.IncomingMessage, res: http.ServerResponse) {
+        for (let i = 0; i < this._middlewares.length; ++i)
+            if (!this._middlewares[i].alter(req, res))
+                return false;
+        return true;
     }
 
     private hasMatchingRoute(route: UrlMatcher[], parsedUrl: url.Url, request: http.IncomingMessage, response: http.ServerResponse): boolean {
@@ -207,15 +214,27 @@ export class Route {
     /**
      * Remove last trailing slash
      * For route matching: 'users' and 'users/' should be mapped to the same route
-     * @private
+     * @public
      * @param {string} str input string to remove trailing slash from
      * @returns 
      * 
      * @memberOf Route
      */
-    private removeTrailingSlash(str: string): string {
+    public static removeTrailingSlash(str: string): string {
         if (str[str.length - 1] === '/')
             return str.substring(0, str.length - 1);
+        return str;
+    }
+
+    public static addSlashToFront(str: string): string {
+        if (str[0] !== '/') str = '/' + str;
+        return str;
+    }
+
+    public static fixRequestUrlForAdding(str: string): string {
+        str = Route.removeTrailingSlash(str)
+        str = Route.addSlashToFront(str);
+
         return str;
     }
 
@@ -236,8 +255,6 @@ export class Route {
      * @param {iMiddleware} middleware to use
      */
     public use(middleware: iMiddleware): void {
-        if (this._middlewares == null)
-            this._middlewares = <[iMiddleware]>[];
         this._middlewares.push(middleware);
     }
 
@@ -301,5 +318,21 @@ export class Route {
      */
     public static get onError(): (response: http.ServerResponse) => void {
         return this.errorRoute;
+    }
+
+    public get getRoute() {
+        return this._getRoute;
+    }
+
+    public get postRoute() {
+        return this._postRoute;
+    }
+
+    public get putRoute() {
+        return this._putRoute;
+    }
+
+    public get deleteRoute() {
+        return this._deleteRoute;
     }
 }

@@ -74,9 +74,9 @@ export class Route {
     /**
      * Creates an instance of Route.
      * 
-     * @param {string} [routeName=null]
+     * @param {string} [routeName='']
      */
-    public constructor(routeName: string = null) {
+    public constructor(routeName: string = '') {
         this._routeName = routeName;
         this._middlewares = <[iMiddleware]>[];
     }

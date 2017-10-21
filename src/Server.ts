@@ -161,7 +161,15 @@ export class Server {
                 self.routeLookup(request, response);
         });
     }
-    
+
+    public static splitRouteForLookup(url: string): { key: string, rest: string } {
+        let firstSlashPosition = url.indexOf('/', 1);
+        let routeKey = url.substring(1, firstSlashPosition);
+        let routeUrl = url.substring(firstSlashPosition);
+
+        return { key: routeKey, rest: routeUrl };
+    }
+
     /**
      * Look up route based on request url. 
      * Will load any middlewares if defined. 
@@ -173,27 +181,29 @@ export class Server {
      * @returns {void} 
      * 
      */
-    private routeLookup(request: http.IncomingMessage, response: http.ServerResponse): void {
+    private routeLookup(request: http.IncomingMessage, response: http.ServerResponse): boolean {
         // Load middlewares
         var length = this.middlewares.length;
         for (let i = 0; i < length; ++i)
             if (!this.middlewares[i].alter(request, response))
-                return; // Should stop processing of dataif a middleware fails, to prevent setting headers if already changed by a middleware throwing an error
+                return false; // Should stop processing of dataif a middleware fails, to prevent setting headers if already changed by a middleware throwing an error
 
         // Find the route which should try to parse the requested URL
-        var firstSlashPos = request.url.indexOf('/', 1);
-        var routeKey = request.url.substring(1, firstSlashPos);
-        var routeUrl = request.url.substring(firstSlashPos);
-        var route = this.routes[routeKey];
+        const { key, rest } = Server.splitRouteForLookup(request.url);
 
-        if (route !== undefined)
-            route.parse(routeUrl, request, response);
-        else // 404 error
+        var route = this.routes[key];
+
+        if (route != undefined && route.parse(rest, request, response))
+            return true
+        else {
+            // 404 error
             this._errorFunctions[ERROR_KEY_NOTFOUND](response);
+            return false;
+        }
     }
 
     /**
-     * Whether teh server is listening for connections or not. Will
+     * Whether the server is listening for connections or not. Will
      * only be true as long as the `listen` method is called
      * 
      * @readonly
@@ -305,6 +315,9 @@ export class Server {
      * @param {Route} route object to add
      */
     public addRoute(route: Route): void {
+        if (route.routeName == '')
+            route.routeName = '/';
+
         if (this.routes[route.routeName] === undefined)
             this.routes[route.routeName] = route;
         else

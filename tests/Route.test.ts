@@ -229,6 +229,11 @@ describe('Route', () => {
             expect(postMethod).to.have.been.called.once;
             expect(deleteMethod).to.have.been.called.once;
         });
+
+        it('should throw Error',()=>{
+            //TODO: create new route with no post route defined
+            //expect(server['routeLookup'](new MockReq({ method: 'POST', url: '/api/hello' }), null)).to.throw(Error);
+        })
     });
 
     describe('Sub-routing', () => {

@@ -1,4 +1,5 @@
 # fuhttp-ts
+[![Build Status](https://travis-ci.org/fosenutvikling/fuhttp-ts.svg?branch=testing)](https://travis-ci.org/fosenutvikling/fuhttp-ts)
 
 ![fuhttp](./media/fuhttp.png "fuhttp-ts logo")
 

@@ -1,16 +1,17 @@
 {
   "name": "fuhttp-ts",
-  "version": "0.4.0",
+  "version": "0.5.0",
   "description": "a HTTP-server written in TypeScript using Node.js",
   "main": "build/fuhttp.js",
   "typings": "build/fuhttp.d.ts",
   "scripts": {
     "prepublish": "npm run rebuild",
     "typedoc": "./node_modules/.bin/typedoc ./ --out documentation/ --tsconfig src/tsconfig.json --media ./media --target es5 --module commonjs --theme minimal --gitRevision master --mode file",
-    "rebuild": "rm -rf ./build/ && npm run build",
+    "rebuild": "rm -rf ./build/ && npm run build && npm run changelog",
     "build": "npm run build:ts && npm run banner",
     "build:ts": "./node_modules/.bin/tsc -p ./src/tsconfig.json",
     "banner": "node tasks/addBanner.js",
+    "changelog": "./node_modules/.bin/auto-changelog --template keepachangelog",
     "test": "mocha -r ts-node/register tests/*.ts"
   },
   "repository": {
@@ -40,6 +41,7 @@
     "@types/mocha": "^2.2.43",
     "@types/node": "^7.0.13",
     "add-banner": "git+https://github.com/jonschlinkert/add-banner.git",
+    "auto-changelog": "^1.0.1",
     "chai": "^4.1.2",
     "chai-spies": "^0.7.1",
     "mocha": "^4.0.1",

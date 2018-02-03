@@ -32,6 +32,7 @@
   "homepage": "https://github.com/fosenutvikling/fuHTTP-ts#readme",
   "dependencies": {
     "formidable": "^1.0.17",
+    "qs": "^6.5.1",
     "url-pattern": "^1.0.3"
   },
   "devDependencies": {
@@ -40,6 +41,7 @@
     "@types/formidable": "^1.0.29",
     "@types/mocha": "^2.2.43",
     "@types/node": "^7.0.13",
+    "@types/qs": "^6.5.1",
     "add-banner": "git+https://github.com/jonschlinkert/add-banner.git",
     "auto-changelog": "^1.0.1",
     "chai": "^4.1.2",

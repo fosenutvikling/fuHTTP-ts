@@ -1,6 +1,7 @@
 import * as UrlPattern from 'url-pattern';
 import * as http from 'http';
 import { Server, iBodyRequest } from './Server';
+import * as qs from 'qs';
 
 const QUERY_SYMBOL = '?';
 const PATTERN_OPTIONS = {
@@ -40,7 +41,7 @@ export class UrlMatcher {
         return this._hasQuery;
     }
 
-    public isMatch(url: string, query: object = null, request: http.IncomingMessage, response: http.ServerResponse): boolean | any[] {
+    public isMatch(url: string, query: string = null, request: http.IncomingMessage, response: http.ServerResponse): boolean | any[] {
         // If parameter includes a query, but current url is not configured with queryParams, immediately return mismatch
         if (query != null && this._hasQuery == null)
             return false;
@@ -52,7 +53,7 @@ export class UrlMatcher {
             return false;
 
         let parameters = this.createCallbackParameterArray(parsedUrlData, query);
-        
+
         // Prevent error for applying 
         if (this._callback == null)
             throw new Error('Callback function == null, not able to call function');
@@ -62,7 +63,7 @@ export class UrlMatcher {
         return true;
     }
 
-    private createCallbackParameterArray(parsedData: any[] | Object | any, query: object = null): any[] {
+    private createCallbackParameterArray(parsedData: any[] | Object | any, query: string = null): any[] {
         let parameterArray = [];
 
         if (parsedData instanceof Array) {
@@ -77,8 +78,11 @@ export class UrlMatcher {
             throw new Error('Unknown type of parsedData data, expected Array || Object, got ' + (typeof parsedData));
 
         // Make sure query parameters is pushed at the end of the input, as an url should end with a querystring
-        if (query != null)
-            parameterArray.push(query);
+        // Parse query string before adding it as a parameter
+        if (query != null) {
+            const parsedQuery = qs.parse(query);
+            parameterArray.push(parsedQuery);
+        }
 
         return parameterArray;
     }

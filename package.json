@@ -5,7 +5,7 @@
   "main": "build/fuhttp.js",
   "typings": "build/fuhttp.d.ts",
   "scripts": {
-    "prepublish": "npm run rebuild",
+    "prepare": "npm run rebuild",
     "typedoc": "./node_modules/.bin/typedoc ./ --out documentation/ --tsconfig src/tsconfig.json --media ./media --target es5 --module commonjs --theme minimal --gitRevision master --mode file",
     "rebuild": "rm -rf ./build/ && npm run build && npm run changelog",
     "build": "npm run build:ts && npm run banner",
@@ -36,21 +36,21 @@
     "url-pattern": "^1.0.3"
   },
   "devDependencies": {
-    "@types/chai": "^4.0.4",
+    "@types/chai": "^4.1.2",
     "@types/chai-spies": "0.0.0",
-    "@types/formidable": "^1.0.29",
-    "@types/mocha": "^2.2.43",
-    "@types/node": "^7.0.13",
+    "@types/formidable": "^1.0.30",
+    "@types/mocha": "^2.2.48",
+    "@types/node": "^7.0.52",
     "@types/qs": "^6.5.1",
     "add-banner": "git+https://github.com/jonschlinkert/add-banner.git",
-    "auto-changelog": "^1.0.1",
+    "auto-changelog": "^1.4.1",
     "chai": "^4.1.2",
     "chai-spies": "^0.7.1",
-    "mocha": "^4.0.1",
+    "mocha": "^4.1.0",
     "mock-req": "^0.2.0",
     "mock-res": "^0.5.0",
     "ts-node": "^3.3.0",
     "typedoc": "^0.6.0",
-    "typescript": "^2.2.2"
+    "typescript": "^2.7.1"
   }
 }

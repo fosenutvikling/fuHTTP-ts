@@ -230,7 +230,7 @@ describe('Route', () => {
             expect(deleteMethod).to.have.been.called.once;
         });
 
-        it('should throw Error',()=>{
+        it('should throw Error', () => {
             //TODO: create new route with no post route defined
             //expect(server['routeLookup'](new MockReq({ method: 'POST', url: '/api/hello' }), null)).to.throw(Error);
         })
@@ -323,10 +323,10 @@ describe('Route', () => {
 
     describe('Middleware', () => {
         it('should add middleware', () => {
-            assert.isTrue(helloRoute.middleware.length == 0);
+            assert.equal(helloRoute.middleware.length, 0);
             let a: iMiddleware;
             helloRoute.use(a);
-            assert.isTrue(helloRoute.middleware.length == 1);
+            assert.equal(helloRoute.middleware.length, 1);
         });
     });
 });

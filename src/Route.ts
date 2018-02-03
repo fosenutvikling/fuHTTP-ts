@@ -22,6 +22,7 @@ export class Route {
      */
     public static errorRoute: (response: http.ServerResponse) => void;
 
+    public static exceptionRoute: (error: Error, response: http.ServerResponse) => void;
     /**
      * The name of the route
      * 
@@ -187,9 +188,15 @@ export class Route {
         if (searchRoute == null)
             throw new Error('searchRoute == null, should never occur');
 
-        // Call Error Route, if no match is found
-        if (!this.hasMatchingRoute(searchRoute, parsedUrl, req, res)) {
-            Route.errorRoute(res);
+        try {
+            // Call Error Route, if no match is found
+            if (!this.hasMatchingRoute(searchRoute, parsedUrl, req, res)) {
+                Route.errorRoute(res);
+                return false;
+            }
+        }
+        catch (ex) {
+            Route.exceptionRoute(ex, res);
             return false;
         }
         return true;
@@ -310,6 +317,10 @@ export class Route {
         Route.errorRoute = error;
     }
 
+    public static set onException(error: (error: Error, response: http.ServerResponse) => void) {
+        Route.exceptionRoute = error;
+    }
+
     /**
      * Get error function
      * 
@@ -318,6 +329,10 @@ export class Route {
      */
     public static get onError(): (response: http.ServerResponse) => void {
         return this.errorRoute;
+    }
+
+    public static get onException(): (error: Error, response: http.ServerResponse) => void {
+        return this.exceptionRoute;
     }
 
     public get getRoute() {

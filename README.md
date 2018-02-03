@@ -115,6 +115,7 @@ This is where the Error Functions come into play. The `Server` comes with some p
 | NA          | Client Emits Error            | clientError | onClientError(error, socket)     |
 | NA          | Server Closes                 | close       | onClose()                        |
 | NA          | Client Request A HTTP Upgrade | upgrade     | onUpgrade()                      |
+| NA          | Exception thrown from server method | exception     | onException()                      |
 
 
 Each error-handler can be set using the method as described in `Method Name`, or through the more general method:

@@ -10,6 +10,7 @@ const ERROR_KEY_REQUEST = 'request';
 const ERROR_KEY_RESPONSE = 'response';
 const ERROR_KEY_NOTFOUND = 'notfound';
 const ERROR_KEY_OVERFLOW = 'overflow';
+const ERROR_EXCEPTION = 'exception';
 
 export interface iBodyRequest extends http.IncomingMessage {
     body?: string;
@@ -241,6 +242,10 @@ export class Server {
                 this._errorFunctions[ERROR_KEY_NOTFOUND] = func;
                 return true;
 
+            case ERROR_EXCEPTION:
+                this._errorFunctions[ERROR_EXCEPTION] = func;
+                return true;
+
             default:
                 throw new Error('Event: ' + event + ' not recognized');
         }
@@ -306,6 +311,12 @@ export class Server {
         if (this._errorFunctions[ERROR_KEY_OVERFLOW] != undefined)
             throw new Error('Overflow error function already set');
         this._errorFunctions[ERROR_KEY_OVERFLOW] = func;
+    }
+
+    public set onException(func: (error: Error, response: http.ServerResponse) => void) {
+        if (this._errorFunctions[ERROR_EXCEPTION] != undefined)
+            throw new Error('Exception error function already set');
+        this._errorFunctions[ERROR_EXCEPTION] = func;
     }
 
     /**
@@ -417,6 +428,7 @@ export class Server {
             };
 
         Route.onError = <(response: http.ServerResponse) => void>this._errorFunctions[ERROR_KEY_NOTFOUND];
+        Route.onException = this._errorFunctions[ERROR_EXCEPTION] as (error: Error, response: http.ServerResponse) => void;
 
         this.server.listen(this.port, this.hostname);
         console.log('STARTED SERVER ON PORT: ' + this.port + ' AND LISTENING ON: ' + this.hostname);

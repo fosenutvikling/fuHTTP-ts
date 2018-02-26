@@ -58,12 +58,7 @@ export class UrlMatcher {
         if (this._callback == null)
             throw new Error('Callback function == null, not able to call function');
 
-        try {
-            this._callback.apply(null, [request, response].concat(parameters));
-        }
-        catch (ex) {
-            return false;
-        }
+        this._callback.apply(null, [request, response].concat(parameters));
 
         return true;
     }

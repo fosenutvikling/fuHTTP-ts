@@ -26,8 +26,7 @@ export class HttpResponse {
         res.statusCode = 204;
         res.statusMessage = 'No Content';
 
-        if (responseText)
-            HttpResponse.EndResponse(responseText, res);
+        HttpResponse.EndResponse(responseText, res);
     }
 
     public static BadRequest(res: http.ServerResponse, responseText: string = null): void {

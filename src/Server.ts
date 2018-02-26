@@ -13,7 +13,7 @@ const ERROR_KEY_OVERFLOW = 'overflow';
 const ERROR_EXCEPTION = 'exception';
 
 export interface iBodyRequest extends http.IncomingMessage {
-    body?: string;
+    body?: string | {};
     fields?: formidable.Fields;
     files?: formidable.Files;
     contentType?: string;

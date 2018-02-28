@@ -5,6 +5,7 @@
   "main": "build/fuhttp.js",
   "typings": "build/fuhttp.d.ts",
   "scripts": {
+    "debug": "tsc-watch -p ./src/tsconfig.json --onSuccess \"npm run test\" --onFailure \"echo Compilation Failed\"",
     "prepare": "npm run rebuild",
     "typedoc": "./node_modules/.bin/typedoc ./ --out documentation/ --tsconfig src/tsconfig.json --media ./media --target es5 --module commonjs --theme minimal --gitRevision master --mode file",
     "rebuild": "rm -rf ./build/ && npm run build && npm run changelog",
@@ -50,7 +51,8 @@
     "mock-req": "^0.2.0",
     "mock-res": "^0.5.0",
     "ts-node": "^4.1.0",
-    "typedoc": "^0.6.0",
+    "tsc-watch": "^1.0.16",
+    "typedoc": "^0.10.0",
     "typescript": "^2.7.1"
   }
 }

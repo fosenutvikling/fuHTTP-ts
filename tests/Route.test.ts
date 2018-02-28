@@ -25,8 +25,11 @@ describe('Route', () => {
             const worldRoute = new Route();
             worldRoute.routeName = 'world';
 
+            const emptyRoute = new Route();
+
             expect(helloRoute.routeName).to.equal('hello');
             expect(worldRoute.routeName).to.equal('world');
+            expect(emptyRoute.routeName).to.equal('');
         });
 
         it('should update route-name', () => {

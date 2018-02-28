@@ -53,6 +53,7 @@ describe('Server', () => {
         nonameRoute.get('/foo', () => { });
         nonameRoute.get('/foo/bar', () => { });
         emptyRoute.get('/print', () => { });
+        emptyRoute.get('/is/this/root', () => { });
         emptyRoute.get('/', () => { });
 
         it('should find route', () => {
@@ -63,6 +64,7 @@ describe('Server', () => {
             assert.isTrue(server['routeLookup'](new MockReq({ method: 'GET', url: '/noname/foo/bar' }), new MockRes()));
 
             assert.isTrue(server['routeLookup'](new MockReq({ method: 'GET', url: '/print' }), new MockRes()));
+            assert.isTrue(server['routeLookup'](new MockReq({ method: 'GET', url: '/is/this/root' }), new MockRes()), 'No match for /is/this/root');
             assert.isTrue(server['routeLookup'](new MockReq({ method: 'GET', url: '/' }), new MockRes()));
         });
 

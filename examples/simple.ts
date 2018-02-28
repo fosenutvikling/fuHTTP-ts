@@ -1,6 +1,6 @@
 import * as fuhttp from '../';
 
-var route = new fuhttp.Route('app');
+var route = new fuhttp.Route();
 route.get('hello/:name', function (req, res: fuhttp.iServerResponse, name) {
     res.json({ 'hello': name });
 });
@@ -13,10 +13,24 @@ route.post('post', function (req, res: fuhttp.iServerResponse, ) {
     res.json({ 'json': 'data', body: req.body });
 });
 
+
+var route1 = new fuhttp.Route();
+route1.get('hello/:name', function (req, res: fuhttp.iServerResponse, name) {
+    res.json({ 'hello': name });
+});
+
+route1.get('', function (req, res: fuhttp.iServerResponse) {
+    res.json({ data: 'my data' });
+});
+
+route1.post('post', function (req, res: fuhttp.iServerResponse, ) {
+    res.json({ 'json': 'data', body: req.body });
+});
 var server = new fuhttp.Server(5000);
 
 // Add routes
-server.addRoute(route);
+server.add('app', route);
+server.addRoute(route1);
 
 // Add middlewares
 server.use(new fuhttp.Cors()); // Enable cross-origin requests

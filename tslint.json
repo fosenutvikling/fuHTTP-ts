@@ -36,8 +36,23 @@
         ],
         "member-ordering": [
             true,
-            "static-before-instance",
-            "variables-before-functions"
+            {
+                "order": [
+                    "private-static-field",
+                    "public-static-field",
+                    "private-static-method",
+                    "public-static-method",
+                    "private-instance-field",
+                    "protected-instance-field",
+                    "public-instance-field",
+                    "private-constructor",
+                    "protected-constructor",
+                    "public-constructor",
+                    "private-instance-method",
+                    "protected-instance-method",
+                    "public-instance-method"
+                ]
+            }
         ],
         "new-parens": true,
         "no-arg": true,
@@ -59,7 +74,6 @@
         "no-empty": false,
         "no-eval": true,
         "no-invalid-this": true,
-        "no-inferrable-types": true,
         "no-shadowed-variable": true,
         "no-string-literal": false,
         "no-switch-case-fall-through": true,
@@ -73,6 +87,7 @@
         ],
         "radix": true,
         "semicolon": [
+            true,
             "always"
         ],
         "switch-default": true,
@@ -82,11 +97,7 @@
             "allow-undefined-check"
         ],
         "typedef": [
-            true,
-            "call-signature",
-            "parameter",
-            "property-declaration",
-            "member-variable-declaration"
+            true
         ],
         "typedef-whitespace": [
             true,

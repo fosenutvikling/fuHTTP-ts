@@ -1,265 +1,298 @@
 import * as http from 'http';
-import { Server, iBodyRequest } from './Server';
+import { IBodyRequest } from './Server';
 import { iMiddleware } from './middlewares/iMiddleware';
-import { UrlMatcher } from './UrlMatcher';
-import * as url from 'url';
+import * as qs from 'qs';
 
-export type HTTP_METHODS = 'GET' | 'POST' | 'PUT' | 'DELETE';
+export enum HTTP_METHODS {
+    GET = 'GET',
+    POST = 'POST',
+    PUT = 'PUT',
+    DELETE = 'DELETE'
+}
+export type RequestFunction = (req: http.IncomingMessage, res: http.ServerResponse, ...params: any[]) => void;
+
+export interface IParseParams {
+    url: string;
+    middlewares?: iMiddleware[];
+    params?: string[];
+}
+
+class NoMatchingHttpMethodException extends Error {
+    public constructor(msg: string, public supportedMethods: { [key: string]: RequestFunction }) {
+        super(msg);
+    }
+}
 
 /**
  * The Route class for parsing and matching incoming http-requests
  * based on an URL
- * 
- * @class Route
  */
 export class Route {
+    /** Strings starting with identifier should be parsed as a parameter */
+    public static readonly paramIdentifier = ':';
 
-    /**
-     * Error function to run when a Route is not matched
-     * 
-     * @static
-     * @type {(response: http.ServerResponse) => void}
-     */
-    public static errorRoute: (response: http.ServerResponse) => void;
+    /** Parameter route. If a parameter is defined, add a new {paramRoute} in {nextRoute} */
+    public static readonly paramRoute = '_pa%ram';
 
-    public static exceptionRoute: (error: Error, response: http.ServerResponse) => void;
-    /**
-     * The name of the route
-     * 
-     * @private
-     * @type {string}
-     */
-    private _routeName: string;
-
-    /**
-     * Store all routes for responding to a get-request
-     * 
-     * @private
-     * @type {UrlMatcher[]}
-     */
-    private _getRoute: UrlMatcher[];
-
-    /**
-     * Store all routes for responding to a post-request
-     * 
-     * @private
-     * @type {UrlMatcher[]}
-     */
-
-    private _postRoute: UrlMatcher[];
-    /**
-     * Store all routes for responding to a delete-request
-     * 
-     * @private
-     * @type {UrlMatcher[]}
-     */
-
-    private _deleteRoute: UrlMatcher[];
-    /**
-     * Store all routes for responding to a put-request
-     * 
-     * @private
-     * @type {UrlMatcher[]}
-     */
-
-    private _putRoute: UrlMatcher[];
-
-    /**
-     * Middlewares to be run before a route
-     * 
-     * @private
-     * @type {[iMiddleware]}
-     */
-    private _middlewares: [iMiddleware];
-
-    /**
-     * Creates an instance of Route.
-     * 
-     * @param {string} [routeName='']
-     */
-    public constructor(routeName: string = '') {
-        this._routeName = routeName;
-        this._middlewares = <[iMiddleware]>[];
-    }
-
-    /**
-     * Method for adding a new route for get-requests
-     * 
-     * @param {string} requestUrl the string a url need to match against for running `func`
-     * @param {(req: http.IncomingMessage, res: http.ServerResponse, ...params: any[]) => void} func Function to call when a route is successfully matched
-     */
-    public get(requestUrl: string, func: (req: http.IncomingMessage, res: http.ServerResponse, ...params: any[]) => void): void {
-        if (this._getRoute == null)
-            this._getRoute = [];
-        this.addRoute(this._getRoute, requestUrl, func);
-    }
-
-    /**
-     * Method for adding a new route for post-requests
-     * 
-     * @param {string} requestUrl the string a url need to match against for running `func`
-     * @param {(req: http.iBodyRequest, res: http.ServerResponse, ...params: any[]) => void} func Function to call when a route is successfully matched
-     */
-    public post(requestUrl: string, func: (req: iBodyRequest, res: http.ServerResponse, ...params: any[]) => void): void {
-        if (this._postRoute == null)
-            this._postRoute = [];
-        this.addRoute(this._postRoute, requestUrl, func);
-    }
-
-    /**
-     * Method for adding a new route for put-requests
-     * 
-     * @param {string} requestUrl the string a url need to match against for running `func`
-     * @param {(req: http.iBodyRequest, res: http.ServerResponse, ...params: any[]) => void} func Function to call when a route is successfully matched
-     */
-    public put(requestUrl: string, func: (req: iBodyRequest, res: http.ServerResponse, ...params: any[]) => void): void {
-        if (this._putRoute == null)
-            this._putRoute = [];
-        this.addRoute(this._putRoute, requestUrl, func);
-    }
-
-    /**
-     * Method for adding a new route for delete-requests
-     * 
-     * @param {string} requestUrl the string a url need to match against for running `func`
-     * @param {(req: http.iBodyRequest, res: http.ServerResponse, ...params: any[]) => void} func Function to call when a route is successfully matched
-     */
-    public delete(requestUrl: string, func: (req: iBodyRequest, res: http.ServerResponse, ...params: any[]) => void): void {
-        if (this._deleteRoute == null)
-            this._deleteRoute = [];
-        this.addRoute(this._deleteRoute, requestUrl, func);
-    }
-
-    private addRoute(
-        routeType: UrlMatcher[],
-        requestUrl: string,
-        func: (req: iBodyRequest | http.IncomingMessage, res: http.ServerResponse, ...params: any[]) => void): void {
-
-        requestUrl = Route.fixRequestUrlForAdding(requestUrl);
-
-        routeType.push(new UrlMatcher(requestUrl, func));
-    }
-
-    /**
-     * Check whether the `url` matches a registered route.
-     * Returns a boolean value whether a route is found or not
-     * 
-     * @param {string} requestUrl to check routes against
-     * @param {http.IncomingMessage} req http-request data for accessing recevied data from a client
-     * @param {http.ServerResponse} res http-response data and methods
-     */
-    public parse(routeUrl: string, req: http.IncomingMessage, res: http.ServerResponse): boolean {
-        // Should stop processing of data if a middleware fails, to prevent setting headers if already changed by a middleware throwing an error
-        if (!this.runMiddlewares(req, res))
-            return false;
-
-        routeUrl = Route.fixRequestUrlForAdding(routeUrl);
-        let parsedUrl = url.parse(routeUrl); // Parsing the routeUrl helps in splitting its pathname, and parse the querystring, if any
-
-        let searchRoute: UrlMatcher[] = null;
-
-        switch (<HTTP_METHODS>req.method) {
+    private static getHttpPublicMethodForRoute(route: Route, httpMethod: HTTP_METHODS) {
+        switch (httpMethod) {
+            case HTTP_METHODS.GET:
+                return route.get;
+            case HTTP_METHODS.POST:
+                return route.post;
+            case HTTP_METHODS.PUT:
+                return route.put;
+            case HTTP_METHODS.DELETE:
+                return route.delete;
             default:
-            case 'GET':
-                if (this._getRoute == null)
-                    throw new Error('getRoute == null');
-                searchRoute = this._getRoute;
-                break;
-
-            case 'POST':
-                if (this._postRoute == null)
-                    throw new Error('postRoute == null');
-                searchRoute = this._postRoute;
-                break;
-
-            case 'PUT':
-                if (this._putRoute == null)
-                    throw new Error('putRoute == null');
-                searchRoute = this._putRoute;
-                break;
-
-            case 'DELETE':
-                if (this._deleteRoute == null)
-                    throw new Error('deleteRoute == null');
-                searchRoute = this._deleteRoute;
-                break;
+                throw new Error('Unsupported HTTP Method');
         }
-
-        if (searchRoute == null)
-            throw new Error('searchRoute == null, should never occur');
-
-        try {
-            // Call Error Route, if no match is found
-            if (!this.hasMatchingRoute(searchRoute, parsedUrl, req, res)) {
-                Route.errorRoute(res);
-                return false;
-            }
-        }
-        catch (ex) {
-            Route.exceptionRoute(ex, res);
-            return false;
-        }
-        return true;
     }
 
-    private runMiddlewares(req: http.IncomingMessage, res: http.ServerResponse) {
-        for (let i = 0; i < this._middlewares.length; ++i)
-            if (!this._middlewares[i].alter(req, res))
-                return false;
-        return true;
-    }
+    private static appendQueryParams(url: string, params: string[]) {
+        const queryPosition = url.indexOf('?');
 
-    private hasMatchingRoute(route: UrlMatcher[], parsedUrl: url.Url, request: http.IncomingMessage, response: http.ServerResponse): boolean {
-        for (let i = 0; i < route.length; ++i) {
-            if (route[i].isMatch(parsedUrl.pathname, parsedUrl.query, request, response)) {
-                return true;
-            }
+        if (queryPosition >= 0) {
+            const queryStr = url.substr(queryPosition);
+            const parsedQuery = qs.parse(queryStr);
+            params.push(parsedQuery);
         }
-        return false;
     }
 
     /**
      * Remove last trailing slash
      * For route matching: 'users' and 'users/' should be mapped to the same route
-     * @public
-     * @param {string} str input string to remove trailing slash from
-     * @returns 
-     * 
-     * @memberOf Route
+     * @param str input string to remove trailing slash from
      */
     public static removeTrailingSlash(str: string): string {
-        if (str[str.length - 1] === '/')
+        if (str && str[str.length - 1] === '/')
             return str.substring(0, str.length - 1);
         return str;
     }
 
-    public static addSlashToFront(str: string): string {
-        if (str[0] !== '/') str = '/' + str;
+    public static removeSlashFromFront(str: string): string {
+        if (str[0] === '/')
+            return str.substr(1);
         return str;
     }
 
     public static fixRequestUrlForAdding(str: string): string {
-        str = Route.removeTrailingSlash(str)
-        str = Route.addSlashToFront(str);
+        str = Route.removeTrailingSlash(str);
+        str = Route.removeSlashFromFront(str);
 
         return str;
     }
 
     /**
-     * @type {string}
+     * Route for responding to get-request
      */
-    public get routeName(): string {
-        return this._routeName;
+    private _getFn: RequestFunction;
+
+    /**
+     * Store all routes for responding to a post-request
+     */
+    private _postFn: RequestFunction;
+
+    /**
+     * Store all routes for responding to a delete-request
+     */
+    private _deleteFn: RequestFunction;
+
+    /**
+     * Store route for responding to a put-request
+     */
+    private _putFn: RequestFunction;
+
+    private _nextRoutes: { [key: string]: Route };
+
+    /**
+     * Middlewares to be run before a route match
+     */
+    private _middlewares: iMiddleware[];
+
+    /**
+     * Creates an instance of Route.
+     */
+    public constructor() {
+        this._middlewares = [] as iMiddleware[];
+        this._nextRoutes = {};
     }
 
-    public set routeName(route: string) {
-        this._routeName = route;
+    private addRoute(
+        HttpMethod: HTTP_METHODS,
+        requestUrl: string,
+        func: RequestFunction) {
+
+        requestUrl = Route.fixRequestUrlForAdding(requestUrl);
+        const splittedRoute = requestUrl.split('/');
+        if (splittedRoute[0] !== '') {
+            const key = splittedRoute[0];
+            const rest = splittedRoute.splice(1).join('/');
+
+            if (this._nextRoutes[key]) {
+                Route.getHttpPublicMethodForRoute(this._nextRoutes[key], HttpMethod)(rest, func);
+            } else if (key[0] === Route.paramIdentifier) {
+                const tempRoute = this._nextRoutes[Route.paramRoute] || new Route();
+                Route.getHttpPublicMethodForRoute(tempRoute, HttpMethod)(rest, func);
+                this._nextRoutes[Route.paramRoute] = tempRoute;
+            } else {
+                const tempRoute = new Route();
+                Route.getHttpPublicMethodForRoute(tempRoute, HttpMethod)(rest, func);
+                this._nextRoutes[key] = tempRoute;
+            }
+        } else {
+            this.assignFnToHttpMethod(HttpMethod, func);
+        }
+    }
+
+    private assignFnToHttpMethod(httpMethod: HTTP_METHODS, fn: RequestFunction) {
+        switch (httpMethod) {
+            case HTTP_METHODS.GET:
+                this._getFn = fn;
+                break;
+            case HTTP_METHODS.POST:
+                this._postFn = fn;
+                break;
+            case HTTP_METHODS.PUT:
+                this._putFn = fn;
+                break;
+            case HTTP_METHODS.DELETE:
+                this._deleteFn = fn;
+                break;
+            default:
+                throw new Error('Unsupported HTTP Method');
+        }
+    }
+
+    private getFnForHttpMethod(httpMethod: HTTP_METHODS) {
+        switch (httpMethod) {
+            case HTTP_METHODS.GET:
+                return this._getFn;
+            case HTTP_METHODS.POST:
+                return this._postFn;
+            case HTTP_METHODS.PUT:
+                return this._putFn;
+            case HTTP_METHODS.DELETE:
+                return this._deleteFn;
+            default:
+                throw new Error('Unsupported HTTP Method');
+        }
+    }
+
+    private runMiddlewares(middlewares: iMiddleware[], req: http.IncomingMessage, res: http.ServerResponse) {
+        for (let i = 0; i < middlewares.length; ++i)
+            if (!middlewares[i].alter(req, res))
+                return false;
+        return true;
+    }
+
+    /**
+     * Method for adding a new route for GET-requests
+     *
+     * @param requestUrl url-endpoint to match incoming requests
+     * @param func to call when match is found
+     */
+    public get(requestUrl: string, func: RequestFunction) {
+        this.addRoute(HTTP_METHODS.GET, requestUrl, func);
+    }
+
+    /**
+     * Method for adding a new route for POST-requests
+     *
+     * @param requestUrl url-endpoint to match incoming requests
+     * @param func to call when match is found
+     */
+    public post(requestUrl: string, func: (req: IBodyRequest, res: http.ServerResponse, ...params: any[]) => void): void {
+        this.addRoute(HTTP_METHODS.POST, requestUrl, func);
+    }
+
+    /**
+     * Method for adding a new route for PUT-requests
+     *
+     * @param requestUrl url-endpoint to match incoming requests
+     * @param func to call when match is found
+     */
+    public put(requestUrl: string, func: (req: IBodyRequest, res: http.ServerResponse, ...params: any[]) => void): void {
+        this.addRoute(HTTP_METHODS.PUT, requestUrl, func);
+    }
+
+    /**
+     * Method for adding a new route for DELETE-requests
+     *
+     * @param requestUrl url-endpoint to match incoming requests
+     * @param func to call when match is found
+     */
+    public delete(requestUrl: string, func: (req: IBodyRequest, res: http.ServerResponse, ...params: any[]) => void): void {
+        this.addRoute(HTTP_METHODS.DELETE, requestUrl, func);
+    }
+
+    /**
+     * Match a route to current `row` of routes based on url in {inputParams}
+     * Returns a boolean value whether a route is found or not.
+     * If the route is found, but it doesn't match with the HTTP.method in {req},
+     * and error is thrown
+     *
+     * @param inputParams url  to match, params to parse, and middlewares to run on route match
+     * @param req Http Request
+     * @param res Http Response
+     */
+    public parse(inputParams: IParseParams, req: http.IncomingMessage, res: http.ServerResponse): boolean {
+        // Should stop processing of data if a middleware fails, to prevent setting headers if already changed by a middleware throwing an error
+
+        // Parse({url,middleware,params}req,res);
+        // If (!this.runMiddlewares(req, res))
+        //  Return false;
+
+        const routeUrl = Route.fixRequestUrlForAdding(inputParams.url);
+        const splittedUrls = routeUrl.split('/');
+        inputParams.middlewares = [];
+        const middlewares = this._middlewares.concat(inputParams.middlewares || []);
+        let params = inputParams.params || [];
+
+        if (splittedUrls[0] !== '') {
+            const key = splittedUrls[0];
+            const nextUrl = splittedUrls.splice(1).join('/');
+
+            let nextRoute: Route;
+            if (this._nextRoutes[key]) {
+                nextRoute = this._nextRoutes[key];
+            } else if (this._nextRoutes[Route.paramRoute]) {
+                params.push(key);
+                nextRoute = this._nextRoutes[Route.paramRoute];
+            }
+            else return false;
+
+            return nextRoute.parse({
+                url: nextUrl,
+                params,
+                middlewares
+            }, req, res);
+        }
+
+        if (!this.runMiddlewares(middlewares, req, res))
+            return false;
+
+        let callback = this.getFnForHttpMethod(req.method as HTTP_METHODS);
+
+        // If callback function is not set, the current HTTP-method is not supported for the current route
+        if (!callback) {
+            // Set of supported HTTP-methods for current route
+            const obj = {
+                get: this._getFn,
+                post: this._postFn,
+                put: this._putFn,
+                delete: this._deleteFn
+            };
+            throw new NoMatchingHttpMethodException(`${req.method} not supported for route`, obj);
+        }
+        Route.appendQueryParams(splittedUrls[0], params);
+        callback.apply(null, [req, res, ...params]);
+
+        return true;
     }
 
     /**
      * Appends a middleware to the route
-     * 
-     * @param {iMiddleware} middleware to use
      */
     public use(middleware: iMiddleware): void {
         this._middlewares.push(middleware);
@@ -267,87 +300,48 @@ export class Route {
 
     /**
      * Appends an existing route to {this} routes
-     * If the route doesn't contain a {routeName}, it is up to the developer to make sure no routes will overlap, as it will result in the last added route to 
+     * If the route doesn't contain a {routeName}, it is up to the developer to make sure no routes will overlap, as it will result in the last added route to
      * never match!
-     * 
-     * @param {Route} route 
-     * 
-     * @memberOf Route
      */
-    public add(route: Route): void {
-        var prefix = route.routeName || '';
+    public add(path: string, route: Route): void {
 
-        if (route._getRoute != null) {
-            for (let i = 0; i < route._getRoute.length; ++i)
-                this.get(prefix + route._getRoute[i].pattern, route._getRoute[i].callback);
+        if (route._getFn) {
+            this.get('/' + path, route._getFn);
         }
 
-        if (route._postRoute != null) {
-            for (let i = 0; i < route._postRoute.length; ++i)
-                this.post(prefix + route._postRoute[i].pattern, route._postRoute[i].callback);
-        }
-
-        if (route._putRoute != null) {
-            for (let i = 0; i < route._putRoute.length; ++i)
-                this.put(prefix + route._putRoute[i].pattern, route._putRoute[i].callback);
-        }
-
-        if (route._deleteRoute != null) {
-            for (let i = 0; i < route._deleteRoute.length; ++i)
-                this.delete(prefix + route._deleteRoute[i].pattern, route._deleteRoute[i].callback);
+        if (this._nextRoutes[path]) {
+            Object.keys(route._nextRoutes).forEach(a => {
+                this.add(a, route._nextRoutes[a]);
+            });
+        } else {
+            this._nextRoutes[path] = route;
         }
     }
 
     /**
      * Retrieves all registered middlewares
-     * 
-     * @readonly
-     * @type {[iMiddleware]}
      */
-    public get middleware(): [iMiddleware] {
+    public get middleware(): iMiddleware[] {
         return this._middlewares;
     }
 
-    /**
-     * Set function to run when a route isn't matchec
-     * 
-     * @static
-     */
-    public static set onError(error: (response: http.ServerResponse) => void) {
-        Route.errorRoute = error;
+    public get getFunction() {
+        return this._getFn;
     }
 
-    public static set onException(error: (error: Error, response: http.ServerResponse) => void) {
-        Route.exceptionRoute = error;
+    public get postFunction() {
+        return this._postFn;
     }
 
-    /**
-     * Get error function
-     * 
-     * @static
-     * @type {(response: http.ServerResponse) => void}
-     */
-    public static get onError(): (response: http.ServerResponse) => void {
-        return this.errorRoute;
+    public get putFunction() {
+        return this._putFn;
     }
 
-    public static get onException(): (error: Error, response: http.ServerResponse) => void {
-        return this.exceptionRoute;
+    public get deleteFunction() {
+        return this._deleteFn;
     }
 
-    public get getRoute() {
-        return this._getRoute;
-    }
-
-    public get postRoute() {
-        return this._postRoute;
-    }
-
-    public get putRoute() {
-        return this._putRoute;
-    }
-
-    public get deleteRoute() {
-        return this._deleteRoute;
+    public get nextRoute() {
+        return this._nextRoutes;
     }
 }

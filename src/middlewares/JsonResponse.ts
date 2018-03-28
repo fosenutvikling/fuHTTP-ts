@@ -1,16 +1,15 @@
 import * as http from 'http';
-import {Server} from '../Server';
-import {iMiddleware} from './iMiddleware';
+import { IMiddleware } from './iMiddleware';
 
 /**
- * Extends the `ServerResponse` class, making a request include methods 
+ * Extends the `ServerResponse` class, making a request include methods
  * defined in the interface
- * 
+ *
  * @export
  * @interface iServerResponse
  * @extends {http.ServerResponse}
  */
-export interface iServerResponse extends http.ServerResponse {
+export interface IServerResponse extends http.ServerResponse {
     /**
      * Generates a json response
      * @see Middleware
@@ -22,20 +21,20 @@ export interface iServerResponse extends http.ServerResponse {
 /**
  * JsonResponse Middleware altering a http-request to include a method
  * for parsing an object to a JSON-string
- * 
+ *
  * @export
  * @class Middleware
  * @implements {iMiddleware}
  */
-export class JsonResponse implements iMiddleware {
+export class JsonResponse implements IMiddleware {
     /**
      * Alters the request object
-     * 
+     *
      * @param {http.IncomingMessage} req (description)
      * @param {http.ServerResponse} res (description)
      */
     public alter(req: http.IncomingMessage, res: http.ServerResponse): boolean {
-        (<iServerResponse>res).json = function (data: {}): void {
+        (<IServerResponse>res).json = function (data: {}): void {
             try {
                 var strJson = JSON.stringify(data);
 

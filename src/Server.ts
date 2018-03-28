@@ -2,7 +2,7 @@ import { Route, NoMatchingHttpMethodException } from './Route';
 import * as net from 'net';
 import * as http from 'http';
 import * as formidable from 'formidable';
-import { iMiddleware } from './middlewares/iMiddleware';
+import { IMiddleware } from './middlewares/iMiddleware';
 import { HttpResponse } from './fuhttp';
 
 // Keys stored in `_errorFunctions` of the Server class
@@ -59,7 +59,7 @@ export class Server {
      * are run before a route is triggered, which can be used
      * to alter the request and response http-objects
      */
-    private _middlewares: iMiddleware[];
+    private _middlewares: IMiddleware[];
 
     /**
      * Error functions for custom-handling of errors. To set
@@ -76,7 +76,7 @@ export class Server {
         this.port = port;
         this.hostname = host;
         this.route = null;
-        this._middlewares = <[iMiddleware]>[];
+        this._middlewares = [];
         this._errorFunctions = {};
         this.connected = false;
 
@@ -315,14 +315,14 @@ export class Server {
      *
      * @param middleware to be added
      */
-    public use(middleware: iMiddleware): void {
+    public use(middleware: IMiddleware): void {
         this._middlewares.push(middleware);
     }
 
     /**
      * Retrieve all registered middlewares
      */
-    public get middlewares(): iMiddleware[] {
+    public get middlewares(): IMiddleware[] {
         return this._middlewares;
     }
 

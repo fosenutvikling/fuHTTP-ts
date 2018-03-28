@@ -23,7 +23,7 @@
         "label-undefined": true,
         "linebreak-style": [
             true,
-            "CRLF"
+            "LF"
         ],
         "max-line-length": [
             true,

@@ -18,7 +18,7 @@ export interface IParseParams {
 }
 
 export class NoMatchingHttpMethodException extends Error {
-    public constructor(msg: string, public supportedMethods: { [key: string]: RequestFunction }) {
+    public constructor(msg: string, public supportedMethods: { [key: string]: boolean }) {
         super(msg);
     }
 }
@@ -277,12 +277,12 @@ export class Route {
         // If callback function is not set, the current HTTP-method is not supported for the current route
         if (!callback) {
             // Set of supported HTTP-methods for current route
-            const obj = {
-                get: this._getFn,
-                post: this._postFn,
-                put: this._putFn,
-                delete: this._deleteFn
-            };
+            const obj: { [key: string]: boolean } = {};
+            if (this._getFn) obj.get = true;
+            if (this._postFn) obj.post = true;
+            if (this._putFn) obj.put = true;
+            if (this._deleteFn) obj.delete = true;
+
             throw new NoMatchingHttpMethodException(`${req.method} not supported for route`, obj);
         }
         Route.appendQueryParams(splittedUrls[0], params);

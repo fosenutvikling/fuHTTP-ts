@@ -5,15 +5,14 @@
   "main": "build/fuhttp.js",
   "typings": "build/fuhttp.d.ts",
   "scripts": {
-    "debug": "tsc-watch -p ./src/tsconfig.json --onSuccess \"npm run test\" --onFailure \"echo Compilation Failed\"",
+    "debug": "tsc-watch -p ./tsconfig.json --onSuccess \"npm run test\" --onFailure \"echo Compilation Failed\"",
     "prepare": "npm run rebuild",
-    "typedoc": "./node_modules/.bin/typedoc ./ --out documentation/ --tsconfig src/tsconfig.json --media ./media --target es5 --module commonjs --theme minimal --gitRevision master --mode file",
     "rebuild": "rm -rf ./build/ && npm run build && npm run changelog",
     "build": "npm run build:ts && npm run banner",
     "build:ts": "./node_modules/.bin/tsc -p ./src/tsconfig.json",
     "banner": "node tasks/addBanner.js",
     "changelog": "./node_modules/.bin/auto-changelog --template keepachangelog",
-    "test": "mocha -r ts-node/register --inspect-brk=8888 tests/*.ts"
+    "test": "mocha -r ts-node/register tests/*.ts"
   },
   "repository": {
     "type": "git",
@@ -41,19 +40,18 @@
     "@types/chai-spies": "0.0.0",
     "@types/formidable": "^1.0.30",
     "@types/mocha": "^2.2.48",
-    "@types/node": "^7.0.52",
+    "@types/node": "^9.4.7",
     "@types/qs": "^6.5.1",
     "add-banner": "git+https://github.com/jonschlinkert/add-banner.git",
     "auto-changelog": "^1.4.1",
     "chai": "^4.1.2",
     "chai-spies": "^0.7.1",
-    "mocha": "^4.1.0",
+    "mocha": "^5.0.4",
     "mock-req": "^0.2.0",
     "mock-res": "^0.5.0",
-    "ts-node": "^4.1.0",
+    "ts-node": "^5.0.1",
     "tsc-watch": "^1.0.16",
     "tslint": "^5.9.1",
-    "typedoc": "^0.10.0",
-    "typescript": "^2.7.1"
+    "typescript": "^2.7.2"
   }
 }

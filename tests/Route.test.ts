@@ -100,7 +100,6 @@ describe('Route', () => {
             assert.isFunction(helloRoute.getFunction);
 
             assert.isFunction(helloRoute.nextRoute.random.getFunction);
-            console.log(helloRoute.nextRoute.random.getFunction);
             assert.isFunction(helloRoute.nextRoute.newRoute.getFunction);
         });
 
@@ -260,7 +259,7 @@ describe('Route', () => {
 
     describe('Sub-routing', () => {
 
-        it('should add a sub-route with no route-name', () => {
+        it('should add a sub-route', () => {
             let parentRoute = new Route();
 
             parentRoute.get('/one-get', () => { });
@@ -292,6 +291,50 @@ describe('Route', () => {
             assert.hasAnyKeys(parentRoute.nextRoute['sub-one-get'].nextRoute,
                 ['test', 'my-test-sub', 'my-other-sub', 'hello'], 'OtherSubs sub route not added');
         });
+
+        it('should add mix route names as sub-routes', () => {
+            let parentRoute = new Route();
+
+            parentRoute.get('/a', () => { });
+            parentRoute.get('/b', () => { });
+
+            let subRoute = new Route();
+            subRoute.get('/aa', () => { });
+            subRoute.get('/ab', () => { });
+
+            parentRoute.add('/a', subRoute);
+            parentRoute.add('b/', subRoute);
+            parentRoute.add(' c', subRoute);
+
+            assert.hasAllKeys(parentRoute.nextRoute, ['a', 'b', 'c'], 'Sub route not added');
+            assert.hasAnyKeys(parentRoute.nextRoute['a'].nextRoute, ['aa', 'ab'], 'Sub-sub route `a` not added');
+            assert.hasAnyKeys(parentRoute.nextRoute['b'].nextRoute, ['aa', 'ab'], 'Sub-sub route `b` not added');
+            assert.hasAnyKeys(parentRoute.nextRoute['c'].nextRoute, ['aa', 'ab'], 'Sub-sub route `c` not added');
+        });
+
+        it('should add multilevel sub-routes', () => {
+
+            let parentRoute = new Route();
+
+            parentRoute.get('/a', () => { });
+            parentRoute.get('/b', () => { });
+
+            let subRoute = new Route();
+            subRoute.get('/aa', () => { });
+            subRoute.get('/ab', () => { });
+
+            parentRoute.add('/a/b', subRoute);
+            parentRoute.add('/c/a', subRoute);
+            parentRoute.add('/c/b/a', subRoute);
+
+            assert.hasAllKeys(parentRoute.nextRoute, ['a', 'b', 'c'], 'Sub route not added');
+            assert.hasAllKeys(parentRoute.nextRoute['a'].nextRoute, ['b'], 'Sub-sub route `a` not added');
+            assert.hasAllKeys(parentRoute.nextRoute['a'].nextRoute['b'].nextRoute, ['aa', 'ab'], 'Sub-sub route `aa` `ab` not added');
+            assert.hasAllKeys(parentRoute.nextRoute['c'].nextRoute, ['a', 'b'], 'Sub-sub route `a` not added to route `c`');
+            assert.hasAllKeys(parentRoute.nextRoute['c'].nextRoute['a'].nextRoute, ['aa', 'ab'], 'Sub-sub route `a` not added to route `c`');
+            assert.hasAllKeys(parentRoute.nextRoute['c'].nextRoute['b'].nextRoute, ['a'], 'Sub-sub route `a` not added to route `c`');
+            assert.hasAllKeys(parentRoute.nextRoute['c'].nextRoute['b'].nextRoute['a'].nextRoute, ['aa', 'ab'], 'Sub-sub route `a` not added to route `c`');
+        });
     });
 
     describe('Middleware', () => {
@@ -312,5 +355,4 @@ describe('Route', () => {
 
         });
     });
-
 });

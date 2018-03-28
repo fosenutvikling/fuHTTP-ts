@@ -9,7 +9,7 @@
     "prepare": "npm run rebuild",
     "rebuild": "rm -rf ./build/ && npm run build && npm run changelog",
     "build": "npm run build:ts && npm run banner",
-    "build:ts": "./node_modules/.bin/tsc -p ./src/tsconfig.json",
+    "build:ts": "./node_modules/.bin/tsc -p ./tsconfig.json",
     "banner": "node tasks/addBanner.js",
     "changelog": "./node_modules/.bin/auto-changelog --commit-limit false --template keepachangelog",
     "test": "mocha -r ts-node/register tests/*.ts"

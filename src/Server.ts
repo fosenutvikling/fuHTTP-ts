@@ -1,9 +1,9 @@
-import { Route } from './Route';
-import * as url from 'url';
+import { Route, NoMatchingHttpMethodException } from './Route';
 import * as net from 'net';
 import * as http from 'http';
 import * as formidable from 'formidable';
 import { iMiddleware } from './middlewares/iMiddleware';
+import { HttpResponse } from './fuhttp';
 
 // Keys stored in `_errorFunctions` of the Server class
 const ERROR_KEY_REQUEST = 'request';
@@ -11,8 +11,9 @@ const ERROR_KEY_RESPONSE = 'response';
 const ERROR_KEY_NOTFOUND = 'notfound';
 const ERROR_KEY_OVERFLOW = 'overflow';
 const ERROR_EXCEPTION = 'exception';
+const ERROR_METHOD_NOT_ALLOWED = 'notallowed';
 
-export interface iBodyRequest extends http.IncomingMessage {
+export interface IBodyRequest extends http.IncomingMessage {
     body?: string | {};
     fields?: formidable.Fields;
     files?: formidable.Files;
@@ -21,25 +22,16 @@ export interface iBodyRequest extends http.IncomingMessage {
 
 /**
  * The HTTP-server class for receiving and responding to HTTP-requests
- * 
- * @export
- * @class Server
  */
 export class Server {
 
     /**
      * http node server instance
-     * 
-     * @private
-     * @type {http.Server}
      */
     private server: http.Server;
 
     /**
      * Port number to listen for
-     * 
-     * @private
-     * @type {number}
      */
     private port: number;
 
@@ -47,39 +39,25 @@ export class Server {
      * hostname/ip in which `server` should accept connections to
      * Leave as null to listen to all IP-adresses. Example usage:
      * using the node-http server as a Reverse Proxy
-     * 
-     * @private
-     * @type {string}
      */
     private hostname: string;
 
     /**
      * Status whether the http-server is started and accepts
      * connections or not
-     * 
-     * @private
-     * @type {boolean}
      */
     private connected: boolean;
 
     /**
-     * All routes added to the http-server, which is recognized
-     * and parsed for each http-request by the requested url.
-     * The routes is stored in a key-value object, where key is
-     * the "parent" path which a route belongs to, e.g. "users"
-     * 
-     * @private
-     * @type {{ [key: string]: Route }}
+     * The route added to the http-server, which is recognized
+     * and parsed for each http-request by the requested url
      */
-    private routes: { [key: string]: Route };
+    private route: Route;
 
     /**
      * Middlewares added to the http-server. All middlewares
      * are run before a route is triggered, which can be used
      * to alter the request and response http-objects
-     * 
-     * @private
-     * @type {[iMiddleware]}
      */
     private _middlewares: [iMiddleware];
 
@@ -87,23 +65,17 @@ export class Server {
      * Error functions for custom-handling of errors. To set
      * error functions see all "on*" methods. If no error
      * functions are set, the defaults are used
-     * 
-     * @private
-     * @type {{ [key: string]: Function }}
      */
     private _errorFunctions: { [key: string]: Function };
 
     /**
      * Creates an instance of Server.
-     * 
-     * @param {number} port number which the http-server should be made accessible
-     * @param {string} [host=null] if specified, accept only connections from `hostname`
      */
     public constructor(port: number, host: string = null) {
         // Initialize variables to be populated
         this.port = port;
         this.hostname = host;
-        this.routes = {};
+        this.route = null;
         this._middlewares = <[iMiddleware]>[];
         this._errorFunctions = {};
         this.connected = false;
@@ -128,7 +100,7 @@ export class Server {
                 var contentTypeRaw: string = request.headers['content-type'];
                 var contentType = (contentTypeRaw != undefined) ? contentTypeRaw.slice(0, contentTypeRaw.indexOf(';')) : null;
 
-                (<iBodyRequest>request).contentType = contentType;
+                (<IBodyRequest>request).contentType = contentType;
 
                 if (contentType === 'multipart/form-data') {
                     var form = new formidable.IncomingForm();
@@ -137,8 +109,8 @@ export class Server {
                         if (error)
                             return request.emit('error', 'Error parsing request body');
 
-                        (<iBodyRequest>request).fields = fields;
-                        (<iBodyRequest>request).files = files;
+                        (<IBodyRequest>request).fields = fields;
+                        (<IBodyRequest>request).files = files;
                         self.routeLookup(request, response);
                     });
                 }
@@ -153,7 +125,7 @@ export class Server {
                     });
 
                     request.on('end', function (): void {
-                        (<iBodyRequest>request).body = body;
+                        (<IBodyRequest>request).body = body;
                         self.routeLookup(request, response);
                     });
                 }
@@ -163,52 +135,40 @@ export class Server {
         });
     }
 
-    public static splitRouteForLookup(url: string): { key: string, rest: string } {
-        let firstSlashPosition = url.indexOf('/', 1);
-        let routeKey = url.substring(1, firstSlashPosition);
-        let routeUrl = url.substring(firstSlashPosition);
-
-        return { key: routeKey, rest: routeUrl };
-    }
-
     /**
-     * Look up route based on request url. 
-     * Will load any middlewares if defined. 
+     * Look up route based on request url.
+     * Will load any middlewares if defined.
      * If no routes are found, the `ERROR_KEY_NOTFOUND` error functions will be called
-     * 
-     * @private
-     * @param {http.IncomingMessage} request 
-     * @param {http.ServerResponse} response 
-     * @returns {void} 
-     * 
+     *
+     * @param request
+     * @param response
      */
     private routeLookup(request: http.IncomingMessage, response: http.ServerResponse): boolean {
         // Load middlewares
         var length = this.middlewares.length;
         for (let i = 0; i < length; ++i)
             if (!this.middlewares[i].alter(request, response))
-                return false; // Should stop processing of dataif a middleware fails, to prevent setting headers if already changed by a middleware throwing an error
+                // Should stop processing of data if a middleware fails, to prevent setting headers if already changed by a middleware throwing an error
+                return false;
 
-        // Find the route which should try to parse the requested URL
-        const { key, rest } = Server.splitRouteForLookup(request.url);
-
-        var route = this.routes[key];
-
-        if (route != undefined && route.parse(rest, request, response))
-            return true
-        else {
+        try {
+            if (this.route.parse({ url: request.url }, request, response))
+                return true;
             // 404 error
             this._errorFunctions[ERROR_KEY_NOTFOUND](response);
             return false;
+
+        } catch (ex) {
+            if (ex instanceof NoMatchingHttpMethodException) {
+                this._errorFunctions[ERROR_METHOD_NOT_ALLOWED](Object.keys(ex.supportedMethods), response);
+            }
         }
+        return false;
     }
 
     /**
      * Whether the server is listening for connections or not. Will
      * only be true as long as the `listen` method is called
-     * 
-     * @readonly
-     * @type {boolean}
      */
     public get isListening(): boolean {
         return this.connected;
@@ -216,13 +176,13 @@ export class Server {
 
     /**
      * Set functions to run on triggered events
-     * 
-     * @param {string} event to listen for
-     * @param {Function} func function to run on event triggered
+     *
+     * @param event to listen for
+     * @param func function to run on event triggered
      * @returns Whether event added successfully for listening
      * @throws Error if the provided event argument cannot be added as eventListener
      */
-    public on(event: string, func: Function): boolean {
+    public on(event: string, func: (...args: any[]) => void): boolean {
         switch (event) {
 
             case 'clientError':
@@ -244,6 +204,10 @@ export class Server {
 
             case ERROR_EXCEPTION:
                 this._errorFunctions[ERROR_EXCEPTION] = func;
+                return true;
+
+            case ERROR_METHOD_NOT_ALLOWED:
+                this._errorFunctions[ERROR_METHOD_NOT_ALLOWED] = func;
                 return true;
 
             default:
@@ -319,39 +283,37 @@ export class Server {
         this._errorFunctions[ERROR_EXCEPTION] = func;
     }
 
-    /**
-     * Adds a new route for the http-server for accepting http-requests
-     * requires the "routeName" to be set
-     * 
-     * @param {Route} route object to add
-     */
-    public addRoute(route: Route): void {
-        if (route.routeName == '')
-            route.routeName = '/';
-
-        if (this.routes[route.routeName] === undefined)
-            this.routes[route.routeName] = route;
-        else
-            throw new Error('Route ' + route.routeName
-                + ' already added. plz fix');
+    public set onMethodNotAllowed(func: (supportedMethods: string[], response: http.ServerResponse) => void) {
+        if (this._errorFunctions[ERROR_METHOD_NOT_ALLOWED] != undefined)
+            throw new Error('Method Not Found error function already set');
+        this._errorFunctions[ERROR_METHOD_NOT_ALLOWED] = func;
     }
 
     /**
      * Adds a new route for the http-server for accepting http-requests
-     * Adds a routename to a route object. See also `addRoute`
-     * 
-     * @param {string} path (routeName which `route` will be made accessible
-     * @param {Route} route object to add
+     *
+     * @param routeName
+     * @param route object to add
      */
-    public add(path: string, route: Route): void {
-        route.routeName = path;
-        this.addRoute(route);
+    public add(routeName: string, route: Route): void {
+        // Check if root route should be replaced
+        if (routeName === '/') {
+            if (this.route) {
+                throw new Error('Root route about to be overwritten. You need to update your route structure!');
+            }
+            this.route = route;
+        }
+        else {
+            // Need to define root route, if not already defined
+            if (!this.route) this.route = new Route();
+            this.route.add(routeName, route);
+        }
     }
 
     /**
-     * Appends a middleware 
-     * 
-     * @param {iMiddleware} middleware to be added
+     * Appends a middleware
+     *
+     * @param middleware to be added
      */
     public use(middleware: iMiddleware): void {
         this._middlewares.push(middleware);
@@ -359,9 +321,6 @@ export class Server {
 
     /**
      * Retrieve all registered middlewares
-     * 
-     * @readonly
-     * @type {[iMiddleware]}
      */
     public get middlewares(): [iMiddleware] {
         return this._middlewares;
@@ -370,9 +329,6 @@ export class Server {
     /**
      * Retrieve the function to call when a route is not found
      * Used by "Route"
-     * 
-     * @readonly
-     * @type {Function}
      */
     public get notfound(): Function {
         return this._errorFunctions[ERROR_KEY_NOTFOUND];
@@ -384,8 +340,7 @@ export class Server {
      * @throws Error If no Routes are added before starting HTTP-server
      */
     public listen(): void {
-
-        if (Object.keys(this.routes).length === 0)
+        if (this.route == null)
             throw new Error('No routes added, and no connections will therefore be accepted.');
 
         if (this._errorFunctions[ERROR_KEY_REQUEST] == undefined)
@@ -426,9 +381,10 @@ export class Server {
                 response.write('The Overflow Error function is not set. It can be set using the appropriate function (onOverflowError)');
                 response.end();
             };
-
-        Route.onError = <(response: http.ServerResponse) => void>this._errorFunctions[ERROR_KEY_NOTFOUND];
-        Route.onException = this._errorFunctions[ERROR_EXCEPTION] as (error: Error, response: http.ServerResponse) => void;
+        if (this._errorFunctions[ERROR_METHOD_NOT_ALLOWED] == undefined)
+            this._errorFunctions[ERROR_METHOD_NOT_ALLOWED] = (supportedMethods: string[], response: http.ServerResponse) => {
+                HttpResponse.MethodNotAllowed(response, supportedMethods);
+            };
 
         this.server.listen(this.port, this.hostname);
         console.log('STARTED SERVER ON PORT: ' + this.port + ' AND LISTENING ON: ' + this.hostname);

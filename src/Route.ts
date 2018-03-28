@@ -17,7 +17,7 @@ export interface IParseParams {
     params?: string[];
 }
 
-class NoMatchingHttpMethodException extends Error {
+export class NoMatchingHttpMethodException extends Error {
     public constructor(msg: string, public supportedMethods: { [key: string]: RequestFunction }) {
         super(msg);
     }
@@ -130,14 +130,14 @@ export class Route {
             const rest = splittedRoute.splice(1).join('/');
 
             if (this._nextRoutes[key]) {
-                Route.getHttpPublicMethodForRoute(this._nextRoutes[key], HttpMethod)(rest, func);
+                Route.getHttpPublicMethodForRoute(this._nextRoutes[key], HttpMethod).apply(this._nextRoutes[key], [rest, func]);
             } else if (key[0] === Route.paramIdentifier) {
                 const tempRoute = this._nextRoutes[Route.paramRoute] || new Route();
-                Route.getHttpPublicMethodForRoute(tempRoute, HttpMethod)(rest, func);
+                Route.getHttpPublicMethodForRoute(tempRoute, HttpMethod).apply(tempRoute, [rest, func]);
                 this._nextRoutes[Route.paramRoute] = tempRoute;
             } else {
                 const tempRoute = new Route();
-                Route.getHttpPublicMethodForRoute(tempRoute, HttpMethod)(rest, func);
+                Route.getHttpPublicMethodForRoute(tempRoute, HttpMethod).apply(tempRoute, [rest, func]);
                 this._nextRoutes[key] = tempRoute;
             }
         } else {
@@ -304,17 +304,36 @@ export class Route {
      * never match!
      */
     public add(path: string, route: Route): void {
+        if (path[0] === '/')
+            path = path.substr(1);
 
-        if (route._getFn) {
-            this.get('/' + path, route._getFn);
+        const splittedRoute = path.split('/');
+        const key = splittedRoute[0].trim();
+
+        if (splittedRoute.length > 1) {
+            const rest = splittedRoute.slice(1).join('/');
+
+            if (rest) {
+                // If rest is not an empty string, add route to existing or new route
+                let nextRoute: Route;
+                if (this._nextRoutes[key]) {
+                    nextRoute = this._nextRoutes[key];
+                }
+                else {
+                    nextRoute = new Route();
+                    this._nextRoutes[key] = nextRoute;
+                }
+
+                return nextRoute.add(rest, route);
+            }
         }
 
-        if (this._nextRoutes[path]) {
-            Object.keys(route._nextRoutes).forEach(a => {
-                this.add(a, route._nextRoutes[a]);
+        if (this._nextRoutes[key]) {
+            Object.keys(route._nextRoutes).forEach(routeKey => {
+                this._nextRoutes[key].add(routeKey, route._nextRoutes[routeKey]);
             });
         } else {
-            this._nextRoutes[path] = route;
+            this._nextRoutes[key] = route;
         }
     }
 

@@ -70,7 +70,7 @@ export class HttpResponse {
         res.statusCode = 405;
         res.statusMessage = 'Method not Allowed';
 
-        HttpResponse.EndResponse(null, res);
+        HttpResponse.EndResponse(supportedMethods.join(','), res);
 
     }
 

@@ -1,30 +1,21 @@
 import * as http from 'http';
-import { IMiddleware } from './iMiddleware';
+import { IMiddleware } from './IMiddleware';
 import { HTTP_METHODS } from '../Route';
 
 /**
  * Options possible for configuring the cors middleware
- *
- * @export
- * @interface iOptions
  */
 export interface IOptions {
     /**
      * Whether  the allow-credentials header should be set, supporting the use of cookies with CORS
-     *
-     * @type {boolean}
      */
     cookies?: boolean;
     /**
      * Supported http-methods for a route, defaults to current request method
-     *
-     * @type {HTTP_METHODS[]}
      */
     methods?: HTTP_METHODS[];
     /**
      * How many seconds a response to be cached for CORS
-     *
-     * @type {number}
      */
     maxage?: number;
 }
@@ -32,10 +23,6 @@ export interface IOptions {
 /**
  * Cors Middleware altering a http-response to include headers
  * for supporting CORS
- *
- * @export
- * @class Middleware
- * @implements {iMiddleware}
  */
 export class Cors implements IMiddleware {
 
@@ -43,8 +30,6 @@ export class Cors implements IMiddleware {
 
     /**
      * Creates an instance of Middleware.
-     *
-     * @param {iOptions} [options={ cookies: false, methods: null, maxage: 1 }] (description)
      */
     public constructor(options: IOptions = { cookies: false, methods: null, maxage: 1 }) {
         this.options = options;
@@ -53,9 +38,6 @@ export class Cors implements IMiddleware {
     /**
      * Alters the response headers, by appending required headers and optional
      * for a browser to not allow a http-call
-     *
-     * @param {http.IncomingMessage} req (description)
-     * @param {http.ServerResponse} res (description)
      */
     public alter(req: http.IncomingMessage, res: http.ServerResponse): boolean {
 

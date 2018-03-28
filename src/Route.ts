@@ -1,6 +1,6 @@
 import * as http from 'http';
 import { IBodyRequest } from './Server';
-import { iMiddleware } from './middlewares/iMiddleware';
+import { IMiddleware } from './middlewares/IMiddleware';
 import * as qs from 'qs';
 
 export enum HTTP_METHODS {
@@ -13,7 +13,7 @@ export type RequestFunction = (req: http.IncomingMessage, res: http.ServerRespon
 
 export interface IParseParams {
     url: string;
-    middlewares?: iMiddleware[];
+    middlewares?: IMiddleware[];
     params?: string[];
 }
 
@@ -108,13 +108,13 @@ export class Route {
     /**
      * Middlewares to be run before a route match
      */
-    private _middlewares: iMiddleware[];
+    private _middlewares: IMiddleware[];
 
     /**
      * Creates an instance of Route.
      */
     public constructor() {
-        this._middlewares = [] as iMiddleware[];
+        this._middlewares = [] as IMiddleware[];
         this._nextRoutes = {};
     }
 
@@ -179,7 +179,7 @@ export class Route {
         }
     }
 
-    private runMiddlewares(middlewares: iMiddleware[], req: http.IncomingMessage, res: http.ServerResponse) {
+    private runMiddlewares(middlewares: IMiddleware[], req: http.IncomingMessage, res: http.ServerResponse) {
         for (let i = 0; i < middlewares.length; ++i)
             if (!middlewares[i].alter(req, res))
                 return false;
@@ -294,7 +294,7 @@ export class Route {
     /**
      * Appends a middleware to the route
      */
-    public use(middleware: iMiddleware): void {
+    public use(middleware: IMiddleware): void {
         this._middlewares.push(middleware);
     }
 
@@ -340,7 +340,7 @@ export class Route {
     /**
      * Retrieves all registered middlewares
      */
-    public get middleware(): iMiddleware[] {
+    public get middleware(): IMiddleware[] {
         return this._middlewares;
     }
 

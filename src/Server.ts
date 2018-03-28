@@ -2,7 +2,7 @@ import { Route, NoMatchingHttpMethodException } from './Route';
 import * as net from 'net';
 import * as http from 'http';
 import * as formidable from 'formidable';
-import { IMiddleware } from './middlewares/iMiddleware';
+import { IMiddleware } from './middlewares/IMiddleware';
 import { HttpResponse } from './fuhttp';
 
 // Keys stored in `_errorFunctions` of the Server class

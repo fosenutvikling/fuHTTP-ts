@@ -1,14 +1,10 @@
 import * as http from 'http';
 import { IBodyRequest } from '../Server';
-import { IMiddleware } from './iMiddleware';
+import { IMiddleware } from './IMiddleware';
 import * as querystring from 'querystring';
 
 /**
  * Parse a http-request body to JSON
- *
- * @export
- * @class BodyJsonParse
- * @implements {iMiddleware}
  */
 export class BodyJsonParse implements IMiddleware {
     /**
@@ -16,9 +12,9 @@ export class BodyJsonParse implements IMiddleware {
      * The content type of a request is checked for what type of parsing is required
      * eiter using plain JSON.parsing, or querystring
      *
-     * @param {IBodyRequest} req the http-request object
-     * @param {http.ServerResponse} res the http-response object
-     * @returns {boolean} whether the parsing of body data succeeded or not
+     * @param req the http-request object
+     * @param res the http-response object
+     * @returns whether the parsing of body data succeeded or not
      */
     public alter(req: IBodyRequest, res: http.ServerResponse): boolean {
 

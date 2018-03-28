@@ -6,8 +6,6 @@ import * as http from 'http';
  *
  * The http.ServerResponse is required for each method, to assign the statusCode and statusMessage to the current response
  * If a responseText is appended as a parameter, the request will be ended as well
- * @export
- * @class HttpResponse
  */
 export class HttpResponse {
     private static EndResponse(responseText: string, res: http.ServerResponse) {

@@ -1,9 +1,9 @@
 # fuhttp-ts
 [![Build Status](https://travis-ci.org/fosenutvikling/fuhttp-ts.svg?branch=testing)](https://travis-ci.org/fosenutvikling/fuhttp-ts)
 
-![fuhttp](./media/fuhttp.png "fuhttp-ts logo")
+![fuhttp](./media/fuhttp-ts_logo.svg "fuhttp-ts logo")
 
-Web-server for nodejs written in `TypeScript`, highly inspired by [this blog post](https://nodejs.org/en/docs/guides/anatomy-of-an-http-transaction/). The server is built on top of the `http` package in nodejs. The router system is built on top of [crossroads.js](https://github.com/millermedeiros/crossroads.js)
+Web-server for nodejs written in `TypeScript`, highly inspired by [this blog post](https://nodejs.org/en/docs/guides/anatomy-of-an-http-transaction/). The server is built on top of the `http` package in nodejs.
 
 Why another web-server package for `nodejs`? because I can _(and because I didn't need all features provided by e.g. [express](https://github.com/expressjs/express))_
 
@@ -66,11 +66,7 @@ Here, connections made from client with origin-ip `localhost` connecting to the 
 
 #### Add Route
 
-Adding a `Route` to match with an incoming HTTP-request, two methods are made available:
-
-```ts
-addRoute(route: Route): void
-```
+Adding a `Route` to match with an incoming HTTP-request:
 
 Where `route` is a set of url-patterns. See [Route](#Route) for more information
 
@@ -78,18 +74,22 @@ Where `route` is a set of url-patterns. See [Route](#Route) for more information
 add(path: string, route: Route): void
 ```
 
-`path` is the parent sub-url, where route is accessible from. Please note this will overwrite an existing set `routeName` for the `route` object. 
+`path` is the parent sub-url, where route is accessible from.
 
 
 ```ts
 let route = new Route('api');
 ... // Setup routes
 
-server.addRoute(route); // Route is made accessible from the routeName, as defined in the routes' constructor
-server.add('test', route); // Overwrites the already set routeName
+server.add('/api', route);
+server.add('/test', route);
 ```
 
 The server can now be accesses the defined `route` object, both from `/api` and `/test`
+
+##### Route lookup
+
+Routing is implemented in a [linked list](https://en.wikipedia.org/wiki/Linked_list) inspired manner. The server only contains a parent route, which has a reference to its sub-routes. The routing uses this implementation to support faster lookup of routes for parsing, as opposed needing to loop through all added routes to find a matching route.
 
 #### Add Middleware <a name="ServerMiddleware"></a>
 
@@ -97,7 +97,7 @@ A middleware is a set of instructions run before each request in handled by the 
 
 
 ```ts
-use(middleware: iMiddleware): void
+use(middleware: IMiddleware): void
 ```
 
 #### Error Handling
@@ -111,6 +111,7 @@ This is where the Error Functions come into play. The `Server` comes with some p
 | 400         | Request Error                 | request     | onRequestError(error, response)  |
 | 444         | Response Error                | response    | onResponseError(error, response) |
 | 404         | Route Not Found               | notfound    | onNotFoundError(response)        |
+| 405         | Method Not Allowed            | notallowed  | onMethodNotAllowed(supportedMethods, response)        |
 | 413         | Request Data Too Large        | overflow    | onOverflowError(response)        |
 | NA          | Client Emits Error            | clientError | onClientError(error, socket)     |
 | NA          | Server Closes                 | close       | onClose()                        |
@@ -192,13 +193,9 @@ The format of each function is defined as following:
 
     requestUrl: string, func: (req: http.IncomingMessage, res: http.ServerResponse, ...params: any[]) => void
 
-`requestUrl` is the pattern which the route should match against. The route parser is built on [snd/url-pattern](https://github.com/snd/url-pattern), supporting both optional, wildcards and regex patterns. Refer to `url-pattern` documentation for more information.
+`requestUrl` is the pattern which the route should match against.
 
-Example of an url-pattern:
-
-        api/:id/[optional/:name]/*
-
-Parameters are defined using the `:` notation infront of a keyword. Optional segments of an url are encapsulated in `[` and `]`.
+Parameters are defined using the `:` notation infront of a keyword.
 
 `func` is the function to call when a HTTP-request url matches the defined pattern in `requestUrl`. When a route matches, the first two parameters will always be:
 
@@ -216,15 +213,15 @@ route.get('api/:id', function(req, res, id) {
     
 });
 
-route.get('api/name/:name[/:lastname]', function(req, res, name, lastname) {
+route.get('api/name/:name', function(req, res, name) {
     // HTTP/GET
-    // api/name/hello/world => name = hello, lastname = world
+    // api/name/hello => name = hello
     ...
 });
 
-route.get('user/:id/*', function(req, res, id, optional) {
+route.get('user/:id', function(req, res, id, optional) {
     // HTTP/GET
-    // user/1/my/optional/string => id = 1, optional = my/optional/string
+    // user/1 => id = 1
     ...
 });
 
@@ -240,33 +237,29 @@ route.get('hello/world', function(req, res) {
 
 Sub-routing is a way of combining or creating nested routes, and is possible through
 
-    add(route: Route): void
+    add(path: string, route: Route): void
 
 ```ts
-let route = new Route('api');
-let userRoute = new Route('user');
+let route = new Route();
+let userRoute = new Route();
 let baseRoute = new Route();
 
-route.add(user);
-route.add(base);
+route.add('/user', user);
+route.add('/base', base);
 ```
 
-The `routeName`, as defined in the constructor, will be used as a prefix for merging the different routes.
-Here, the `userRoute` will be accessible through `api/user`, while the `baseRoute` through `api/`, as no `routeName` is defined. 
+Here, the `userRoute` will be accessible through `/user`, and `baseRoute` through `base/`
 
 __NOTE:__ If both `route` and `baseRoute` has a set of colliding route-patterns, only the parent-route will be matched, in this case `route`. 
-
 
 #### Middleware
 
 Each Route can run a middleware before a matched route is called. As opposed to a [server middleware](#ServerMiddleware), which is run on each request, a route middleware is only run for a single route. Use-cases could be to lock-down certain routes for authentication.
 
 ```ts
-use(middleware: iMiddleware): void
+use(middleware: IMiddleware): void
 ```
 More information about middlewares, and the different types can be found in the [middleware](#Middlewares) section below
-
-
 
 
 
@@ -344,7 +337,7 @@ HTML response:
 
 #### Custom
 
-Each middleware is implementing the `iMiddleware` interface, which requires the `alter(...)` method to be implemented.
+Each middleware is implementing the `IMiddleware` interface, which requires the `alter(...)` method to be implemented.
 
 
     alter(request: http.IncomingMessage, response: http.ServerResponse): boolean;
@@ -352,9 +345,9 @@ Each middleware is implementing the `iMiddleware` interface, which requires the 
 All middlewares is required to return a `boolean` value. If a middleware is returning `false`, the request will stop executing.
 
 ```ts
-import {iMiddleware} from 'fuhttp';
+import {IMiddleware} from 'fuhttp';
 
-class MyCustomMiddleware implements iMiddleware {
+class MyCustomMiddleware implements IMiddleware {
     public alter(req, res): boolean {
         ... // Do some tweaks on the req / res objects here
         return true; // return false if you want to stop execution
@@ -368,7 +361,7 @@ class MyCustomMiddleware implements iMiddleware {
 Multiple examples are found in the `examples/` folder.
 
 ```js
-var fuhttp=require('fuhttp'); // Load package
+var fuhttp=require('fuhttp-ts'); // Load package
 
 var myRoute = new fuhttp.Route();
 
@@ -387,10 +380,8 @@ server.listen(); // Start listening for incoming requests
 
 - [ ] ~~Support for [`connect`](https://github.com/senchalabs/connect) middlewares~~
     - As the connect middlewares expectes an input parameter `next()` this idea was scrapped, as I'm not a fan of this design structure
-- [x] `POST`, `PUT` and `DELETE` body data parsing
-- [x] Publish as `npm` package
-- [ ] Testing, mochajs?
-
+- [ ] Test middlewares?
+- [ ] Performance testing, and comparison of other libraries
 
 ## Release History
 
@@ -398,4 +389,4 @@ See the [changelog](CHANGELOG.md)
 
 ## License
 
-© Fosen-Utvikling AS, 2016 - 2017. Licensed under a [MIT](LICENSE) license
+© Fosen-Utvikling AS, 2016 - 2018. Licensed under a [MIT](LICENSE) license

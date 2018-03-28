@@ -1,6 +1,6 @@
 {
   "name": "fuhttp-ts",
-  "version": "0.6.3",
+  "version": "1.0.0",
   "description": "a HTTP-server written in TypeScript using Node.js",
   "main": "build/fuhttp.js",
   "typings": "build/fuhttp.d.ts",
@@ -11,7 +11,7 @@
     "build": "npm run build:ts && npm run banner",
     "build:ts": "./node_modules/.bin/tsc -p ./src/tsconfig.json",
     "banner": "node tasks/addBanner.js",
-    "changelog": "./node_modules/.bin/auto-changelog --template keepachangelog",
+    "changelog": "./node_modules/.bin/auto-changelog --commit-limit false --template keepachangelog",
     "test": "mocha -r ts-node/register tests/*.ts"
   },
   "repository": {

@@ -59,7 +59,7 @@ export class Server {
      * are run before a route is triggered, which can be used
      * to alter the request and response http-objects
      */
-    private _middlewares: [iMiddleware];
+    private _middlewares: iMiddleware[];
 
     /**
      * Error functions for custom-handling of errors. To set
@@ -322,7 +322,7 @@ export class Server {
     /**
      * Retrieve all registered middlewares
      */
-    public get middlewares(): [iMiddleware] {
+    public get middlewares(): iMiddleware[] {
         return this._middlewares;
     }
 

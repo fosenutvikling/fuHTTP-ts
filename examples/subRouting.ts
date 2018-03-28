@@ -1,6 +1,6 @@
 import * as fuhttp from '../';
 
-var route1 = new fuhttp.Route('api');
+var route1 = new fuhttp.Route();
 route1.get('hello', function (req, res) {
     res.write('route1 hello');
     res.end();
@@ -16,11 +16,11 @@ route2.get('mix', function (req, res) {
 
 var server = new fuhttp.Server(5000);
 
-// Define route2 as a sub-route to route1
-route1.add(route2);
+// Define route2 as a sub-route to route1 under `/sub`
+route1.add('/sub', route2);
 
 // Append route to server
-server.addRoute(route1);
+server.add('/api', route1);
 
 // Start server
 server.listen();

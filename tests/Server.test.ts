@@ -14,58 +14,54 @@ describe('Server', () => {
     let server = new Server(1300);
     let errorMethod = spy((res) => { });
     server.onNotFoundError = errorMethod;
-    let apiRoute = new Route('api');
+    let notAllowed = spy((methods, res) => { });
+    server.onMethodNotAllowed = notAllowed;
+    let apiRoute = new Route();
     let nonameRoute = new Route();
     let emptyRoute = new Route();
 
+    apiRoute.get('/hello', () => { });
+    apiRoute.get('/hello/world', () => { });
+    nonameRoute.get('/foo', () => { });
+    nonameRoute.get('/foo/bar', () => { });
+    emptyRoute.get('/print', () => { });
+    emptyRoute.get('/is/this/root', () => { });
+    emptyRoute.get('/', () => { });
+
     describe('Add routes', () => {
-        it('should add route object', () => {
-            server.addRoute(apiRoute);
-            assert.isNotNull(server['routes']['api']);
+        it('should add root route', () => {
+            assert.isNull((server['route'] as Route));
+            server.add('/', apiRoute);
+            assert.isNotNull((server['route'] as Route));
         });
 
         it('should add route with a path', () => {
-            server.add('noname', nonameRoute);
-            assert.isNotNull(server['routes']['noname']);
-        });
+            assert.isUndefined((server['route'] as Route).nextRoute['noname']);
+            server.add('/noname', nonameRoute);
+            assert.isNotNull((server['route'] as Route).nextRoute['noname']);
 
-        it('should add route with no name', () => {
-            expect(emptyRoute.routeName).to.equal('');
-            server.addRoute(emptyRoute);
-            expect(emptyRoute.routeName).to.equal('/');
-            assert.isNotNull(server['routes']['/']);
-        });
-    });
+            assert.isUndefined((server['route'] as Route).nextRoute['api']);
+            server.add('/api', apiRoute);
+            assert.isNotNull((server['route'] as Route).nextRoute['api']);
 
-    describe('splitRouteForLookup', () => {
-        it('should return key/rest pair', () => {
-            expect(Server.splitRouteForLookup('/api/hello')).to.deep.equal({ key: 'api', rest: '/hello' });
-            expect(Server.splitRouteForLookup('/hello/world')).to.deep.equal({ key: 'hello', rest: '/world' });
-            expect(Server.splitRouteForLookup('/foo/bar/hello/world')).to.deep.equal({ key: 'foo', rest: '/bar/hello/world' });
-            expect(Server.splitRouteForLookup('/foo')).to.deep.equal({ key: '/', rest: '/foo' });
-            expect(Server.splitRouteForLookup('/')).to.deep.equal({ key: '/', rest: '/' });
+            server.add('/api/noname/sub', apiRoute);
+            assert.isNotNull((server['route'] as Route).nextRoute['api'].nextRoute['noname'].nextRoute['sub']);
         });
     });
 
     describe('routeLookup', () => {
-        apiRoute.get('/hello', () => { });
-        apiRoute.get('/hello/world', () => { });
-        nonameRoute.get('/foo', () => { });
-        nonameRoute.get('/foo/bar', () => { });
-        emptyRoute.get('/print', () => { });
-        emptyRoute.get('/is/this/root', () => { });
-        emptyRoute.get('/', () => { });
 
         it('should find route', () => {
+            assert.isTrue(server['routeLookup'](new MockReq({ method: 'GET', url: '/hello' }), new MockRes()));
+            assert.isTrue(server['routeLookup'](new MockReq({ method: 'GET', url: '/hello/world' }), new MockRes()));
+
             assert.isTrue(server['routeLookup'](new MockReq({ method: 'GET', url: '/api/hello' }), new MockRes()));
             assert.isTrue(server['routeLookup'](new MockReq({ method: 'GET', url: '/api/hello/world' }), new MockRes()));
 
             assert.isTrue(server['routeLookup'](new MockReq({ method: 'GET', url: '/noname/foo' }), new MockRes()));
             assert.isTrue(server['routeLookup'](new MockReq({ method: 'GET', url: '/noname/foo/bar' }), new MockRes()));
 
-            assert.isTrue(server['routeLookup'](new MockReq({ method: 'GET', url: '/print' }), new MockRes()));
-            assert.isTrue(server['routeLookup'](new MockReq({ method: 'GET', url: '/is/this/root' }), new MockRes()), 'No match for /is/this/root');
-            assert.isTrue(server['routeLookup'](new MockReq({ method: 'GET', url: '/' }), new MockRes()));
+            assert.isTrue(server['routeLookup'](new MockReq({ method: 'GET', url: '/api/noname/sub/noname/foo/bar' }), new MockRes()));
         });
 
         it('should not find route', () => {
@@ -74,16 +70,19 @@ describe('Server', () => {
             assert.isFalse(server['routeLookup'](new MockReq({ method: 'GET', url: '' }), new MockRes()));
 
             expect(errorMethod).to.have.been.called();
-            expect(errorMethod).to.have.been.called.exactly(3);
+            expect(notAllowed).to.have.been.called();
+            expect(errorMethod).to.have.been.called.exactly(2);
+            expect(notAllowed).to.have.been.called.exactly(1);
         });
     });
 
     describe('middlewares', () => {
         it('should add middleware', () => {
-            assert.isTrue(server.middlewares.length == 0);
+            assert.isTrue(server.middlewares.length === 0);
             let a: iMiddleware;
             server.use(a);
-            assert.isTrue(server.middlewares.length == 1);
+            assert.isTrue(server.middlewares.length === 1);
         });
     });
+
 });

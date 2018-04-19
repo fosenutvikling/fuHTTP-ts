@@ -17,20 +17,20 @@ export class BodyJsonParse implements IMiddleware {
      * @returns whether the parsing of body data succeeded or not
      */
     public alter(req: IBodyRequest, res: http.ServerResponse): boolean {
-
-        if (req.contentType === 'application/x-www-form-urlencode') { // Body is in url form (using & and = for denoting key-value pairs)
+        if (req.contentType === 'application/x-www-form-urlencode') {
+            // Body is in url form (using & and = for denoting key-value pairs)
             try {
                 req.body = querystring.parse(req.body as string);
             } catch (e) {
-                req.emit('error', 'Couldn\'t parse query body data to JSON');
+                req.emit('error', "Couldn't parse query body data to JSON");
                 return false;
             }
-        }
-        else {
+        } else {
             try {
-                req.body = (req.body == null || req.body === '') ? null : JSON.parse(req.body as string);
+                req.body =
+                    req.body == null || req.body === '' ? null : JSON.parse(req.body as string);
             } catch (e) {
-                req.emit('error', 'Couldn\'t parse body data to JSON');
+                req.emit('error', "Couldn't parse body data to JSON");
                 return false;
             }
         }

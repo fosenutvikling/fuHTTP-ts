@@ -9,7 +9,11 @@ export enum HTTP_METHODS {
     PUT = 'PUT',
     DELETE = 'DELETE'
 }
-export type RequestFunction = (req: http.IncomingMessage, res: http.ServerResponse, ...params: any[]) => void;
+export type RequestFunction = (
+    req: http.IncomingMessage,
+    res: http.ServerResponse,
+    ...params: any[]
+) => void;
 
 export interface IParseParams {
     url: string;
@@ -65,14 +69,12 @@ export class Route {
      * @param str input string to remove trailing slash from
      */
     public static removeTrailingSlash(str: string): string {
-        if (str && str[str.length - 1] === '/')
-            return str.substring(0, str.length - 1);
+        if (str && str[str.length - 1] === '/') return str.substring(0, str.length - 1);
         return str;
     }
 
     public static removeSlashFromFront(str: string): string {
-        if (str[0] === '/')
-            return str.substr(1);
+        if (str[0] === '/') return str.substr(1);
         return str;
     }
 
@@ -118,11 +120,7 @@ export class Route {
         this._nextRoutes = {};
     }
 
-    private addRoute(
-        HttpMethod: HTTP_METHODS,
-        requestUrl: string,
-        func: RequestFunction) {
-
+    private addRoute(HttpMethod: HTTP_METHODS, requestUrl: string, func: RequestFunction) {
         requestUrl = Route.fixRequestUrlForAdding(requestUrl);
         const splittedRoute = requestUrl.split('/');
         if (splittedRoute[0] !== '') {
@@ -130,14 +128,23 @@ export class Route {
             const rest = splittedRoute.splice(1).join('/');
 
             if (this._nextRoutes[key]) {
-                Route.getHttpPublicMethodForRoute(this._nextRoutes[key], HttpMethod).apply(this._nextRoutes[key], [rest, func]);
+                Route.getHttpPublicMethodForRoute(this._nextRoutes[key], HttpMethod).apply(
+                    this._nextRoutes[key],
+                    [rest, func]
+                );
             } else if (key[0] === Route.paramIdentifier) {
                 const tempRoute = this._nextRoutes[Route.paramRoute] || new Route();
-                Route.getHttpPublicMethodForRoute(tempRoute, HttpMethod).apply(tempRoute, [rest, func]);
+                Route.getHttpPublicMethodForRoute(tempRoute, HttpMethod).apply(tempRoute, [
+                    rest,
+                    func
+                ]);
                 this._nextRoutes[Route.paramRoute] = tempRoute;
             } else {
                 const tempRoute = new Route();
-                Route.getHttpPublicMethodForRoute(tempRoute, HttpMethod).apply(tempRoute, [rest, func]);
+                Route.getHttpPublicMethodForRoute(tempRoute, HttpMethod).apply(tempRoute, [
+                    rest,
+                    func
+                ]);
                 this._nextRoutes[key] = tempRoute;
             }
         } else {
@@ -179,10 +186,13 @@ export class Route {
         }
     }
 
-    private runMiddlewares(middlewares: IMiddleware[], req: http.IncomingMessage, res: http.ServerResponse) {
+    private runMiddlewares(
+        middlewares: IMiddleware[],
+        req: http.IncomingMessage,
+        res: http.ServerResponse
+    ) {
         for (let i = 0; i < middlewares.length; ++i)
-            if (!middlewares[i].alter(req, res))
-                return false;
+            if (!middlewares[i].alter(req, res)) return false;
         return true;
     }
 
@@ -202,7 +212,10 @@ export class Route {
      * @param requestUrl url-endpoint to match incoming requests
      * @param func to call when match is found
      */
-    public post(requestUrl: string, func: (req: IBodyRequest, res: http.ServerResponse, ...params: any[]) => void): void {
+    public post(
+        requestUrl: string,
+        func: (req: IBodyRequest, res: http.ServerResponse, ...params: any[]) => void
+    ): void {
         this.addRoute(HTTP_METHODS.POST, requestUrl, func);
     }
 
@@ -212,7 +225,10 @@ export class Route {
      * @param requestUrl url-endpoint to match incoming requests
      * @param func to call when match is found
      */
-    public put(requestUrl: string, func: (req: IBodyRequest, res: http.ServerResponse, ...params: any[]) => void): void {
+    public put(
+        requestUrl: string,
+        func: (req: IBodyRequest, res: http.ServerResponse, ...params: any[]) => void
+    ): void {
         this.addRoute(HTTP_METHODS.PUT, requestUrl, func);
     }
 
@@ -222,7 +238,10 @@ export class Route {
      * @param requestUrl url-endpoint to match incoming requests
      * @param func to call when match is found
      */
-    public delete(requestUrl: string, func: (req: IBodyRequest, res: http.ServerResponse, ...params: any[]) => void): void {
+    public delete(
+        requestUrl: string,
+        func: (req: IBodyRequest, res: http.ServerResponse, ...params: any[]) => void
+    ): void {
         this.addRoute(HTTP_METHODS.DELETE, requestUrl, func);
     }
 
@@ -236,7 +255,11 @@ export class Route {
      * @param req Http Request
      * @param res Http Response
      */
-    public parse(inputParams: IParseParams, req: http.IncomingMessage, res: http.ServerResponse): boolean {
+    public parse(
+        inputParams: IParseParams,
+        req: http.IncomingMessage,
+        res: http.ServerResponse
+    ): boolean {
         // Should stop processing of data if a middleware fails, to prevent setting headers if already changed by a middleware throwing an error
 
         // Parse({url,middleware,params}req,res);
@@ -259,18 +282,20 @@ export class Route {
             } else if (this._nextRoutes[Route.paramRoute]) {
                 params.push(key);
                 nextRoute = this._nextRoutes[Route.paramRoute];
-            }
-            else return false;
+            } else return false;
 
-            return nextRoute.parse({
-                url: nextUrl,
-                params,
-                middlewares
-            }, req, res);
+            return nextRoute.parse(
+                {
+                    url: nextUrl,
+                    params,
+                    middlewares
+                },
+                req,
+                res
+            );
         }
 
-        if (!this.runMiddlewares(middlewares, req, res))
-            return false;
+        if (!this.runMiddlewares(middlewares, req, res)) return false;
 
         let callback = this.getFnForHttpMethod(req.method as HTTP_METHODS);
 
@@ -304,8 +329,7 @@ export class Route {
      * never match!
      */
     public add(path: string, route: Route): void {
-        if (path[0] === '/')
-            path = path.substr(1);
+        if (path[0] === '/') path = path.substr(1);
 
         const splittedRoute = path.split('/');
         const key = splittedRoute[0].trim();
@@ -318,8 +342,7 @@ export class Route {
                 let nextRoute: Route;
                 if (this._nextRoutes[key]) {
                     nextRoute = this._nextRoutes[key];
-                }
-                else {
+                } else {
                     nextRoute = new Route();
                     this._nextRoutes[key] = nextRoute;
                 }

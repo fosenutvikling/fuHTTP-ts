@@ -1,5 +1,5 @@
 import { Route } from '../src/Route';
-import { iMiddleware } from '../src/middlewares/iMiddleware';
+import { IMiddleware } from '../src/middlewares/iMiddleware';
 import { expect, assert, use, spy } from 'chai';
 import * as spies from 'chai-spies';
 import * as http from 'http';
@@ -17,8 +17,8 @@ describe('Route', () => {
     const newRoute = '/newRoute';
     const exceptionRoute = '/exception';
 
-    let simpleRouteFunction = (req, res) => { };
-    let middleware: iMiddleware = {
+    let simpleRouteFunction = (req, res) => {};
+    let middleware: IMiddleware = {
         alter: (req, res) => {
             return true;
         }
@@ -96,7 +96,11 @@ describe('Route', () => {
 
             helloRoute.get('/', simpleRouteFunction);
 
-            assert.hasAllKeys(helloRoute.nextRoute, ['random', 'newRoute'], 'Random route not added');
+            assert.hasAllKeys(
+                helloRoute.nextRoute,
+                ['random', 'newRoute'],
+                'Random route not added'
+            );
             assert.isFunction(helloRoute.getFunction);
 
             assert.isFunction(helloRoute.nextRoute.random.getFunction);
@@ -111,7 +115,11 @@ describe('Route', () => {
 
             helloRoute.post('/', simpleRouteFunction);
 
-            assert.hasAllKeys(helloRoute.nextRoute, ['random', 'newRoute'], 'Random route not added');
+            assert.hasAllKeys(
+                helloRoute.nextRoute,
+                ['random', 'newRoute'],
+                'Random route not added'
+            );
             assert.isFunction(helloRoute.postFunction);
 
             assert.isFunction(helloRoute.nextRoute.random.postFunction);
@@ -126,7 +134,11 @@ describe('Route', () => {
 
             helloRoute.put('/', simpleRouteFunction);
 
-            assert.hasAllKeys(helloRoute.nextRoute, ['random', 'newRoute'], 'Random route not added');
+            assert.hasAllKeys(
+                helloRoute.nextRoute,
+                ['random', 'newRoute'],
+                'Random route not added'
+            );
             assert.isFunction(helloRoute.putFunction);
 
             assert.isFunction(helloRoute.nextRoute.random.putFunction);
@@ -141,7 +153,11 @@ describe('Route', () => {
 
             helloRoute.delete('/', simpleRouteFunction);
 
-            assert.hasAllKeys(helloRoute.nextRoute, ['random', 'newRoute'], 'Random route not added');
+            assert.hasAllKeys(
+                helloRoute.nextRoute,
+                ['random', 'newRoute'],
+                'Random route not added'
+            );
             assert.isFunction(helloRoute.deleteFunction);
 
             assert.isFunction(helloRoute.nextRoute.random.deleteFunction);
@@ -151,27 +167,60 @@ describe('Route', () => {
 
     describe('Parse', () => {
         it('Should match route', () => {
-            assert.isTrue(helloRoute.parse({ url: randomRoute }, new MockReq({ method: 'GET' }), null));
-            assert.isTrue(helloRoute.parse({ url: randomRoute }, new MockReq({ method: 'PUT' }), null));
-            assert.isTrue(helloRoute.parse({ url: randomRoute }, new MockReq({ method: 'POST' }), null));
-            assert.isTrue(helloRoute.parse({ url: randomRoute }, new MockReq({ method: 'DELETE' }), null));
+            assert.isTrue(
+                helloRoute.parse({ url: randomRoute }, new MockReq({ method: 'GET' }), null)
+            );
+            assert.isTrue(
+                helloRoute.parse({ url: randomRoute }, new MockReq({ method: 'PUT' }), null)
+            );
+            assert.isTrue(
+                helloRoute.parse({ url: randomRoute }, new MockReq({ method: 'POST' }), null)
+            );
+            assert.isTrue(
+                helloRoute.parse({ url: randomRoute }, new MockReq({ method: 'DELETE' }), null)
+            );
 
-            assert.isTrue(helloRoute.parse({ url: newRoute }, new MockReq({ method: 'GET' }), null));
-            assert.isTrue(helloRoute.parse({ url: newRoute }, new MockReq({ method: 'PUT' }), null));
-            assert.isTrue(helloRoute.parse({ url: newRoute }, new MockReq({ method: 'POST' }), null));
-            assert.isTrue(helloRoute.parse({ url: newRoute }, new MockReq({ method: 'DELETE' }), null));
+            assert.isTrue(
+                helloRoute.parse({ url: newRoute }, new MockReq({ method: 'GET' }), null)
+            );
+            assert.isTrue(
+                helloRoute.parse({ url: newRoute }, new MockReq({ method: 'PUT' }), null)
+            );
+            assert.isTrue(
+                helloRoute.parse({ url: newRoute }, new MockReq({ method: 'POST' }), null)
+            );
+            assert.isTrue(
+                helloRoute.parse({ url: newRoute }, new MockReq({ method: 'DELETE' }), null)
+            );
         });
 
         it('should match route without slash', () => {
-            assert.isTrue(helloRoute.parse({ url: randomRoute + '/' }, new MockReq({ method: 'GET' }), null));
-            assert.isTrue(helloRoute.parse({ url: randomRoute.substring(1) + '/' }, new MockReq({ method: 'GET' }), null));
-            assert.isTrue(helloRoute.parse({ url: randomRoute.substring(1) }, new MockReq({ method: 'GET' }), null));
+            assert.isTrue(
+                helloRoute.parse({ url: randomRoute + '/' }, new MockReq({ method: 'GET' }), null)
+            );
+            assert.isTrue(
+                helloRoute.parse(
+                    { url: randomRoute.substring(1) + '/' },
+                    new MockReq({ method: 'GET' }),
+                    null
+                )
+            );
+            assert.isTrue(
+                helloRoute.parse(
+                    { url: randomRoute.substring(1) },
+                    new MockReq({ method: 'GET' }),
+                    null
+                )
+            );
         });
 
         it('should match and call function', () => {
             let inc = 1;
-            function getMatchRoot(req, res) { }
-            function getMatchRootId(req, res, id) { assert.isTrue(id === inc.toString()); ++inc; }
+            function getMatchRoot(req, res) {}
+            function getMatchRootId(req, res, id) {
+                assert.isTrue(id === inc.toString());
+                ++inc;
+            }
 
             let spyFunctionRoot = spy(getMatchRoot);
             let spyFunctionRootId = spy(getMatchRootId);
@@ -183,29 +232,49 @@ describe('Route', () => {
 
             assert.isTrue(helloRoute.parse({ url: '/spy' }, new MockReq({ method: 'GET' }), null));
 
-            assert.isTrue(helloRoute.parse({ url: '/spy/1' }, new MockReq({ method: 'GET' }), null));
-            assert.isTrue(helloRoute.parse({ url: '/spy/2' }, new MockReq({ method: 'GET' }), null));
+            assert.isTrue(
+                helloRoute.parse({ url: '/spy/1' }, new MockReq({ method: 'GET' }), null)
+            );
+            assert.isTrue(
+                helloRoute.parse({ url: '/spy/2' }, new MockReq({ method: 'GET' }), null)
+            );
 
             expect(spyFunctionRoot).to.have.been.called.exactly(1);
             expect(spyFunctionRootId).to.have.been.called.exactly(2);
         });
 
         it('should call correct http-method', () => {
-            let getMethod = spy((req) => { assert.isTrue(req.method === 'GET'); });
-            let putMethod = spy((req) => { assert.isTrue(req.method === 'PUT'); });
-            let postMethod = spy((req) => { assert.isTrue(req.method === 'POST'); });
-            let deleteMethod = spy((req) => { assert.isTrue(req.method === 'DELETE'); });
+            let getMethod = spy(req => {
+                assert.isTrue(req.method === 'GET');
+            });
+            let putMethod = spy(req => {
+                assert.isTrue(req.method === 'PUT');
+            });
+            let postMethod = spy(req => {
+                assert.isTrue(req.method === 'POST');
+            });
+            let deleteMethod = spy(req => {
+                assert.isTrue(req.method === 'DELETE');
+            });
 
             helloRoute.get('/hello-world', getMethod);
             helloRoute.put('/hello-world', putMethod);
             helloRoute.post('/hello-world', postMethod);
             helloRoute.delete('/hello-world', deleteMethod);
 
-            assert.isTrue(helloRoute.parse({ url: '/hello-world' }, new MockReq({ method: 'GET' }), null));
-            assert.isTrue(helloRoute.parse({ url: '/hello-world' }, new MockReq({ method: 'PUT' }), null));
-            assert.isTrue(helloRoute.parse({ url: '/hello-world' }, new MockReq({ method: 'POST' }), null));
+            assert.isTrue(
+                helloRoute.parse({ url: '/hello-world' }, new MockReq({ method: 'GET' }), null)
+            );
+            assert.isTrue(
+                helloRoute.parse({ url: '/hello-world' }, new MockReq({ method: 'PUT' }), null)
+            );
+            assert.isTrue(
+                helloRoute.parse({ url: '/hello-world' }, new MockReq({ method: 'POST' }), null)
+            );
 
-            assert.isTrue(helloRoute.parse({ url: '/hello-world' }, new MockReq({ method: 'DELETE' }), null));
+            assert.isTrue(
+                helloRoute.parse({ url: '/hello-world' }, new MockReq({ method: 'DELETE' }), null)
+            );
 
             expect(getMethod).to.have.been.called.exactly(1);
             expect(putMethod).to.have.been.called.exactly(1);
@@ -239,10 +308,34 @@ describe('Route', () => {
             helloRoute.post('/hello-world/:name', postMethod);
             helloRoute.delete('/hello-world/:name', deleteMethod);
 
-            assert.isTrue(helloRoute.parse({ url: '/hello-world/world-get' }, new MockReq({ method: 'GET' }), null));
-            assert.isTrue(helloRoute.parse({ url: '/hello-world/world-put' }, new MockReq({ method: 'PUT' }), null));
-            assert.isTrue(helloRoute.parse({ url: '/hello-world/world-post' }, new MockReq({ method: 'POST' }), null));
-            assert.isTrue(helloRoute.parse({ url: '/hello-world/world-delete' }, new MockReq({ method: 'DELETE' }), null));
+            assert.isTrue(
+                helloRoute.parse(
+                    { url: '/hello-world/world-get' },
+                    new MockReq({ method: 'GET' }),
+                    null
+                )
+            );
+            assert.isTrue(
+                helloRoute.parse(
+                    { url: '/hello-world/world-put' },
+                    new MockReq({ method: 'PUT' }),
+                    null
+                )
+            );
+            assert.isTrue(
+                helloRoute.parse(
+                    { url: '/hello-world/world-post' },
+                    new MockReq({ method: 'POST' }),
+                    null
+                )
+            );
+            assert.isTrue(
+                helloRoute.parse(
+                    { url: '/hello-world/world-delete' },
+                    new MockReq({ method: 'DELETE' }),
+                    null
+                )
+            );
 
             expect(getMethod).to.have.been.called.exactly(1);
             expect(putMethod).to.have.been.called.exactly(1);
@@ -252,98 +345,137 @@ describe('Route', () => {
 
         it('should throw Error', () => {
             // TODO: create new route with no post route defined
-            expect(() => helloRoute.parse({ url: 'spy' }, new MockReq({ method: 'POST' }), null)).to.throw();
+            expect(() =>
+                helloRoute.parse({ url: 'spy' }, new MockReq({ method: 'POST' }), null)
+            ).to.throw();
         });
-
     });
 
     describe('Sub-routing', () => {
-
         it('should add a sub-route', () => {
             let parentRoute = new Route();
 
-            parentRoute.get('/one-get', () => { });
-            parentRoute.get('/two-get', () => { });
-            parentRoute.put('/one-put', () => { });
-            parentRoute.post('/one-post', () => { });
-            parentRoute.delete('/one-delete', () => { });
+            parentRoute.get('/one-get', () => {});
+            parentRoute.get('/two-get', () => {});
+            parentRoute.put('/one-put', () => {});
+            parentRoute.post('/one-post', () => {});
+            parentRoute.delete('/one-delete', () => {});
 
             let subRoute = new Route();
-            subRoute.get('/sub-one-get', () => { });
-            subRoute.get('/sub-one-get/hello', () => { });
-            subRoute.get('/sub-two-get', () => { });
-            subRoute.put('/sub-one-put', () => { });
-            subRoute.post('/sub-one-post', () => { });
-            subRoute.delete('/sub-one-delete', () => { });
+            subRoute.get('/sub-one-get', () => {});
+            subRoute.get('/sub-one-get/hello', () => {});
+            subRoute.get('/sub-two-get', () => {});
+            subRoute.put('/sub-one-put', () => {});
+            subRoute.post('/sub-one-post', () => {});
+            subRoute.delete('/sub-one-delete', () => {});
 
             let otherSub = new Route();
-            otherSub.get('/test', () => { });
-            otherSub.get('/my-test-sub', () => { });
-            otherSub.get('/my-other-sub', () => { });
+            otherSub.get('/test', () => {});
+            otherSub.get('/my-test-sub', () => {});
+            otherSub.get('/my-other-sub', () => {});
 
             parentRoute.add('sub', subRoute);
             parentRoute.add('sub-one-get', otherSub);
 
             assert.hasAnyKeys(parentRoute.nextRoute, ['sub'], 'Sub route not added');
-            assert.hasAnyKeys(parentRoute.nextRoute['sub'].nextRoute,
-                ['sub-one-get', 'sub-two-get', 'sub-one-put', 'sub-one-post', 'sub-one-delete'], 'Subs sub route not added');
+            assert.hasAnyKeys(
+                parentRoute.nextRoute['sub'].nextRoute,
+                ['sub-one-get', 'sub-two-get', 'sub-one-put', 'sub-one-post', 'sub-one-delete'],
+                'Subs sub route not added'
+            );
             assert.hasAnyKeys(parentRoute.nextRoute, ['sub-one-get'], 'OtherSub route not added');
-            assert.hasAnyKeys(parentRoute.nextRoute['sub-one-get'].nextRoute,
-                ['test', 'my-test-sub', 'my-other-sub', 'hello'], 'OtherSubs sub route not added');
+            assert.hasAnyKeys(
+                parentRoute.nextRoute['sub-one-get'].nextRoute,
+                ['test', 'my-test-sub', 'my-other-sub', 'hello'],
+                'OtherSubs sub route not added'
+            );
         });
 
         it('should add mix route names as sub-routes', () => {
             let parentRoute = new Route();
 
-            parentRoute.get('/a', () => { });
-            parentRoute.get('/b', () => { });
+            parentRoute.get('/a', () => {});
+            parentRoute.get('/b', () => {});
 
             let subRoute = new Route();
-            subRoute.get('/aa', () => { });
-            subRoute.get('/ab', () => { });
+            subRoute.get('/aa', () => {});
+            subRoute.get('/ab', () => {});
 
             parentRoute.add('/a', subRoute);
             parentRoute.add('b/', subRoute);
             parentRoute.add(' c', subRoute);
 
             assert.hasAllKeys(parentRoute.nextRoute, ['a', 'b', 'c'], 'Sub route not added');
-            assert.hasAnyKeys(parentRoute.nextRoute['a'].nextRoute, ['aa', 'ab'], 'Sub-sub route `a` not added');
-            assert.hasAnyKeys(parentRoute.nextRoute['b'].nextRoute, ['aa', 'ab'], 'Sub-sub route `b` not added');
-            assert.hasAnyKeys(parentRoute.nextRoute['c'].nextRoute, ['aa', 'ab'], 'Sub-sub route `c` not added');
+            assert.hasAnyKeys(
+                parentRoute.nextRoute['a'].nextRoute,
+                ['aa', 'ab'],
+                'Sub-sub route `a` not added'
+            );
+            assert.hasAnyKeys(
+                parentRoute.nextRoute['b'].nextRoute,
+                ['aa', 'ab'],
+                'Sub-sub route `b` not added'
+            );
+            assert.hasAnyKeys(
+                parentRoute.nextRoute['c'].nextRoute,
+                ['aa', 'ab'],
+                'Sub-sub route `c` not added'
+            );
         });
 
         it('should add multilevel sub-routes', () => {
-
             let parentRoute = new Route();
 
-            parentRoute.get('/a', () => { });
-            parentRoute.get('/b', () => { });
+            parentRoute.get('/a', () => {});
+            parentRoute.get('/b', () => {});
 
             let subRoute = new Route();
-            subRoute.get('/aa', () => { });
-            subRoute.get('/ab', () => { });
+            subRoute.get('/aa', () => {});
+            subRoute.get('/ab', () => {});
 
             parentRoute.add('/a/b', subRoute);
             parentRoute.add('/c/a', subRoute);
             parentRoute.add('/c/b/a', subRoute);
 
             assert.hasAllKeys(parentRoute.nextRoute, ['a', 'b', 'c'], 'Sub route not added');
-            assert.hasAllKeys(parentRoute.nextRoute['a'].nextRoute, ['b'], 'Sub-sub route `a` not added');
-            assert.hasAllKeys(parentRoute.nextRoute['a'].nextRoute['b'].nextRoute, ['aa', 'ab'], 'Sub-sub route `aa` `ab` not added');
-            assert.hasAllKeys(parentRoute.nextRoute['c'].nextRoute, ['a', 'b'], 'Sub-sub route `a` not added to route `c`');
-            assert.hasAllKeys(parentRoute.nextRoute['c'].nextRoute['a'].nextRoute, ['aa', 'ab'], 'Sub-sub route `a` not added to route `c`');
-            assert.hasAllKeys(parentRoute.nextRoute['c'].nextRoute['b'].nextRoute, ['a'], 'Sub-sub route `a` not added to route `c`');
-            assert.hasAllKeys(parentRoute.nextRoute['c'].nextRoute['b'].nextRoute['a'].nextRoute, ['aa', 'ab'], 'Sub-sub route `a` not added to route `c`');
+            assert.hasAllKeys(
+                parentRoute.nextRoute['a'].nextRoute,
+                ['b'],
+                'Sub-sub route `a` not added'
+            );
+            assert.hasAllKeys(
+                parentRoute.nextRoute['a'].nextRoute['b'].nextRoute,
+                ['aa', 'ab'],
+                'Sub-sub route `aa` `ab` not added'
+            );
+            assert.hasAllKeys(
+                parentRoute.nextRoute['c'].nextRoute,
+                ['a', 'b'],
+                'Sub-sub route `a` not added to route `c`'
+            );
+            assert.hasAllKeys(
+                parentRoute.nextRoute['c'].nextRoute['a'].nextRoute,
+                ['aa', 'ab'],
+                'Sub-sub route `a` not added to route `c`'
+            );
+            assert.hasAllKeys(
+                parentRoute.nextRoute['c'].nextRoute['b'].nextRoute,
+                ['a'],
+                'Sub-sub route `a` not added to route `c`'
+            );
+            assert.hasAllKeys(
+                parentRoute.nextRoute['c'].nextRoute['b'].nextRoute['a'].nextRoute,
+                ['aa', 'ab'],
+                'Sub-sub route `a` not added to route `c`'
+            );
         });
     });
 
     describe('Middleware', () => {
-
         it('should add middleware', () => {
-
             assert.equal(helloRoute.middleware.length, 1);
 
-            const a: iMiddleware = {
+            const a: IMiddleware = {
                 alter: (req, res) => {
                     return true;
                 }
@@ -352,7 +484,6 @@ describe('Route', () => {
             helloRoute.use(a);
 
             assert.equal(helloRoute.middleware.length, 2);
-
         });
     });
 });

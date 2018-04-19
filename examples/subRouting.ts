@@ -1,13 +1,13 @@
 import * as fuhttp from '../';
 
 var route1 = new fuhttp.Route();
-route1.get('hello', function (req, res) {
+route1.get('hello', function(req, res) {
     res.write('route1 hello');
     res.end();
 });
 
 var route2 = new fuhttp.Route();
-route2.get('mix', function (req, res) {
+route2.get('mix', function(req, res) {
     fuhttp.HttpResponse.ServerError(res);
 
     res.write('route2 hello');

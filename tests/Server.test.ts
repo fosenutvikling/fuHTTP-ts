@@ -1,7 +1,7 @@
 import { Server } from '../src/Server';
 import { Route } from '../src/Route';
 import { expect, assert, use, spy } from 'chai';
-import { iMiddleware } from '../src/middlewares/iMiddleware';
+import { IMiddleware } from '../src/middlewares/iMiddleware';
 import * as spies from 'chai-spies';
 
 var MockReq = require('mock-req');
@@ -12,27 +12,27 @@ use(spies);
 
 describe('Server', () => {
     let server = new Server(1300);
-    let errorMethod = spy((res) => { });
+    let errorMethod = spy(res => {});
     server.onNotFoundError = errorMethod;
-    let notAllowed = spy((methods, res) => { });
+    let notAllowed = spy((methods, res) => {});
     server.onMethodNotAllowed = notAllowed;
     let apiRoute = new Route();
     let nonameRoute = new Route();
     let emptyRoute = new Route();
 
-    apiRoute.get('/hello', () => { });
-    apiRoute.get('/hello/world', () => { });
-    nonameRoute.get('/foo', () => { });
-    nonameRoute.get('/foo/bar', () => { });
-    emptyRoute.get('/print', () => { });
-    emptyRoute.get('/is/this/root', () => { });
-    emptyRoute.get('/', () => { });
+    apiRoute.get('/hello', () => {});
+    apiRoute.get('/hello/world', () => {});
+    nonameRoute.get('/foo', () => {});
+    nonameRoute.get('/foo/bar', () => {});
+    emptyRoute.get('/print', () => {});
+    emptyRoute.get('/is/this/root', () => {});
+    emptyRoute.get('/', () => {});
 
     describe('Add routes', () => {
         it('should add root route', () => {
-            assert.isNull((server['route'] as Route));
+            assert.isNull(server['route'] as Route);
             server.add('/', apiRoute);
-            assert.isNotNull((server['route'] as Route));
+            assert.isNotNull(server['route'] as Route);
         });
 
         it('should add route with a path', () => {
@@ -45,29 +45,74 @@ describe('Server', () => {
             assert.isNotNull((server['route'] as Route).nextRoute['api']);
 
             server.add('/api/noname/sub', apiRoute);
-            assert.isNotNull((server['route'] as Route).nextRoute['api'].nextRoute['noname'].nextRoute['sub']);
+            assert.isNotNull(
+                (server['route'] as Route).nextRoute['api'].nextRoute['noname'].nextRoute['sub']
+            );
         });
     });
 
     describe('routeLookup', () => {
-
         it('should find route', () => {
-            assert.isTrue(server['routeLookup'](new MockReq({ method: 'GET', url: '/hello' }), new MockRes()));
-            assert.isTrue(server['routeLookup'](new MockReq({ method: 'GET', url: '/hello/world' }), new MockRes()));
+            assert.isTrue(
+                server['routeLookup'](new MockReq({ method: 'GET', url: '/hello' }), new MockRes())
+            );
+            assert.isTrue(
+                server['routeLookup'](
+                    new MockReq({ method: 'GET', url: '/hello/world' }),
+                    new MockRes()
+                )
+            );
 
-            assert.isTrue(server['routeLookup'](new MockReq({ method: 'GET', url: '/api/hello' }), new MockRes()));
-            assert.isTrue(server['routeLookup'](new MockReq({ method: 'GET', url: '/api/hello/world' }), new MockRes()));
+            assert.isTrue(
+                server['routeLookup'](
+                    new MockReq({ method: 'GET', url: '/api/hello' }),
+                    new MockRes()
+                )
+            );
+            assert.isTrue(
+                server['routeLookup'](
+                    new MockReq({ method: 'GET', url: '/api/hello/world' }),
+                    new MockRes()
+                )
+            );
 
-            assert.isTrue(server['routeLookup'](new MockReq({ method: 'GET', url: '/noname/foo' }), new MockRes()));
-            assert.isTrue(server['routeLookup'](new MockReq({ method: 'GET', url: '/noname/foo/bar' }), new MockRes()));
+            assert.isTrue(
+                server['routeLookup'](
+                    new MockReq({ method: 'GET', url: '/noname/foo' }),
+                    new MockRes()
+                )
+            );
+            assert.isTrue(
+                server['routeLookup'](
+                    new MockReq({ method: 'GET', url: '/noname/foo/bar' }),
+                    new MockRes()
+                )
+            );
 
-            assert.isTrue(server['routeLookup'](new MockReq({ method: 'GET', url: '/api/noname/sub/noname/foo/bar' }), new MockRes()));
+            assert.isTrue(
+                server['routeLookup'](
+                    new MockReq({ method: 'GET', url: '/api/noname/sub/noname/foo/bar' }),
+                    new MockRes()
+                )
+            );
         });
 
         it('should not find route', () => {
-            assert.isFalse(server['routeLookup'](new MockReq({ method: 'GET', url: '/api/hello/foo' }), new MockRes()));
-            assert.isFalse(server['routeLookup'](new MockReq({ method: 'GET', url: '/api/hello/world/foo' }), new MockRes()));
-            assert.isFalse(server['routeLookup'](new MockReq({ method: 'GET', url: '' }), new MockRes()));
+            assert.isFalse(
+                server['routeLookup'](
+                    new MockReq({ method: 'GET', url: '/api/hello/foo' }),
+                    new MockRes()
+                )
+            );
+            assert.isFalse(
+                server['routeLookup'](
+                    new MockReq({ method: 'GET', url: '/api/hello/world/foo' }),
+                    new MockRes()
+                )
+            );
+            assert.isFalse(
+                server['routeLookup'](new MockReq({ method: 'GET', url: '' }), new MockRes())
+            );
 
             expect(errorMethod).to.have.been.called();
             expect(notAllowed).to.have.been.called();
@@ -79,10 +124,9 @@ describe('Server', () => {
     describe('middlewares', () => {
         it('should add middleware', () => {
             assert.isTrue(server.middlewares.length === 0);
-            let a: iMiddleware;
+            let a: IMiddleware;
             server.use(a);
             assert.isTrue(server.middlewares.length === 1);
         });
     });
-
 });

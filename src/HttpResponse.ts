@@ -13,16 +13,18 @@ export class HttpResponse {
         res.end();
     }
 
-    public static Created(res: http.ServerResponse, location: string = null, responseText: string = null): void {
+    public static Created(
+        res: http.ServerResponse,
+        location: string = null,
+        responseText: string = null
+    ): void {
         res.statusCode = 201;
         res.statusMessage = 'Created';
 
         // Whether location of newly created resource should be added to header
-        if (location)
-            res.setHeader('Location', location);
+        if (location) res.setHeader('Location', location);
 
-        if (responseText)
-            HttpResponse.EndResponse(responseText, res);
+        if (responseText) HttpResponse.EndResponse(responseText, res);
     }
 
     public static NoContent(res: http.ServerResponse, responseText: string = null): void {
@@ -36,32 +38,28 @@ export class HttpResponse {
         res.statusCode = 400;
         res.statusMessage = 'Bad Request';
 
-        if (responseText)
-            HttpResponse.EndResponse(responseText, res);
+        if (responseText) HttpResponse.EndResponse(responseText, res);
     }
 
     public static Unauthorized(res: http.ServerResponse, responseText: string = null): void {
         res.statusCode = 401;
         res.statusMessage = 'Unauthorized';
 
-        if (responseText)
-            HttpResponse.EndResponse(responseText, res);
+        if (responseText) HttpResponse.EndResponse(responseText, res);
     }
 
     public static Forbidden(res: http.ServerResponse, responseText: string = null): void {
         res.statusCode = 403;
         res.statusMessage = 'Forbidden';
 
-        if (responseText)
-            HttpResponse.EndResponse(responseText, res);
+        if (responseText) HttpResponse.EndResponse(responseText, res);
     }
 
     public static NotFound(res: http.ServerResponse, responseText: string = null): void {
         res.statusCode = 404;
         res.statusMessage = 'Not Found';
 
-        if (responseText)
-            HttpResponse.EndResponse(responseText, res);
+        if (responseText) HttpResponse.EndResponse(responseText, res);
     }
 
     public static MethodNotAllowed(res: http.ServerResponse, supportedMethods: string[]) {
@@ -69,14 +67,12 @@ export class HttpResponse {
         res.statusMessage = 'Method not Allowed';
 
         HttpResponse.EndResponse(supportedMethods.join(','), res);
-
     }
 
     public static ServerError(res: http.ServerResponse, responseText: string = null): void {
         res.statusCode = 500;
         res.statusMessage = 'Internal Server Error';
 
-        if (responseText)
-            HttpResponse.EndResponse(responseText, res);
+        if (responseText) HttpResponse.EndResponse(responseText, res);
     }
 }

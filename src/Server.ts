@@ -24,7 +24,6 @@ export interface IBodyRequest extends http.IncomingMessage {
  * The HTTP-server class for receiving and responding to HTTP-requests
  */
 export class Server {
-
     /**
      * http node server instance
      */
@@ -84,38 +83,44 @@ export class Server {
 
         var self = this;
 
-        this.server.on('request', function (request: http.IncomingMessage, response: http.ServerResponse): void {
+        this.server.on('request', function(
+            request: http.IncomingMessage,
+            response: http.ServerResponse
+        ): void {
             var body = '';
-            request.on('error', function (error: Error): void {
+            request.on('error', function(error: Error): void {
                 self._errorFunctions[ERROR_KEY_REQUEST](error, response);
             });
 
-            response.on('error', function (error: Error): void {
+            response.on('error', function(error: Error): void {
                 self._errorFunctions[ERROR_KEY_RESPONSE](error, response);
             });
 
             // Should parse the body if a POST,PUT or DELETE request is made, with content-length set
             if (request.method !== 'GET' && request.headers['content-length'] != undefined) {
-
                 var contentTypeRaw: string = request.headers['content-type'];
-                var contentType = (contentTypeRaw != undefined) ? contentTypeRaw.slice(0, contentTypeRaw.indexOf(';')) : null;
+                var contentType =
+                    contentTypeRaw != undefined
+                        ? contentTypeRaw.slice(0, contentTypeRaw.indexOf(';'))
+                        : null;
 
                 (<IBodyRequest>request).contentType = contentType;
 
                 if (contentType === 'multipart/form-data') {
                     var form = new formidable.IncomingForm();
-                    form.parse(request, function (error: any, fields: formidable.Fields, files: formidable.Files): any {
-
-                        if (error)
-                            return request.emit('error', 'Error parsing request body');
+                    form.parse(request, function(
+                        error: any,
+                        fields: formidable.Fields,
+                        files: formidable.Files
+                    ): any {
+                        if (error) return request.emit('error', 'Error parsing request body');
 
                         (<IBodyRequest>request).fields = fields;
                         (<IBodyRequest>request).files = files;
                         self.routeLookup(request, response);
                     });
-                }
-                else {
-                    request.on('data', function (data: Buffer): Function {
+                } else {
+                    request.on('data', function(data: Buffer): Function {
                         body += data;
 
                         // Prevent flooding of RAM (1mb) http://stackoverflow.com/a/8640308
@@ -124,14 +129,13 @@ export class Server {
                         }
                     });
 
-                    request.on('end', function (): void {
+                    request.on('end', function(): void {
                         (<IBodyRequest>request).body = body;
                         self.routeLookup(request, response);
                     });
                 }
-            }
-            else // No need to parse any body data when a GET request is made
-                self.routeLookup(request, response);
+            } // No need to parse any body data when a GET request is made
+            else self.routeLookup(request, response);
         });
     }
 
@@ -152,15 +156,16 @@ export class Server {
                 return false;
 
         try {
-            if (this.route.parse({ url: request.url }, request, response))
-                return true;
+            if (this.route.parse({ url: request.url }, request, response)) return true;
             // 404 error
             this._errorFunctions[ERROR_KEY_NOTFOUND](response);
             return false;
-
         } catch (ex) {
             if (ex instanceof NoMatchingHttpMethodException) {
-                this._errorFunctions[ERROR_METHOD_NOT_ALLOWED](Object.keys(ex.supportedMethods), response);
+                this._errorFunctions[ERROR_METHOD_NOT_ALLOWED](
+                    Object.keys(ex.supportedMethods),
+                    response
+                );
             }
         }
         return false;
@@ -184,7 +189,6 @@ export class Server {
      */
     public on(event: string, func: (...args: any[]) => void): boolean {
         switch (event) {
-
             case 'clientError':
             case 'close':
             case 'upgrade':
@@ -283,7 +287,9 @@ export class Server {
         this._errorFunctions[ERROR_EXCEPTION] = func;
     }
 
-    public set onMethodNotAllowed(func: (supportedMethods: string[], response: http.ServerResponse) => void) {
+    public set onMethodNotAllowed(
+        func: (supportedMethods: string[], response: http.ServerResponse) => void
+    ) {
         if (this._errorFunctions[ERROR_METHOD_NOT_ALLOWED] != undefined)
             throw new Error('Method Not Found error function already set');
         this._errorFunctions[ERROR_METHOD_NOT_ALLOWED] = func;
@@ -299,11 +305,12 @@ export class Server {
         // Check if root route should be replaced
         if (routeName === '/') {
             if (this.route) {
-                throw new Error('Root route about to be overwritten. You need to update your route structure!');
+                throw new Error(
+                    'Root route about to be overwritten. You need to update your route structure!'
+                );
             }
             this.route = route;
-        }
-        else {
+        } else {
             // Need to define root route, if not already defined
             if (!this.route) this.route = new Route();
             this.route.add(routeName, route);
@@ -344,45 +351,66 @@ export class Server {
             throw new Error('No routes added, and no connections will therefore be accepted.');
 
         if (this._errorFunctions[ERROR_KEY_REQUEST] == undefined)
-            this._errorFunctions[ERROR_KEY_REQUEST] = function (error: Error, response: http.ServerResponse): void {
+            this._errorFunctions[ERROR_KEY_REQUEST] = function(
+                error: Error,
+                response: http.ServerResponse
+            ): void {
                 console.error(error.stack);
                 response.setHeader('Content-Type', 'text/html');
                 response.statusCode = 400;
                 response.statusMessage = 'Bad Request';
                 response.write('Error: ' + error);
-                response.write('The Request Error function is not set. It can be set using the appropriate function (onRequestError)');
+                response.write(
+                    'The Request Error function is not set. It can be set using the appropriate function (onRequestError)'
+                );
                 response.end();
             };
 
         if (this._errorFunctions[ERROR_KEY_RESPONSE] == undefined)
-            this._errorFunctions[ERROR_KEY_RESPONSE] = function (error: Error, response: http.ServerResponse): void {
+            this._errorFunctions[ERROR_KEY_RESPONSE] = function(
+                error: Error,
+                response: http.ServerResponse
+            ): void {
                 console.error(error.stack);
                 response.setHeader('Content-Type', 'text/html');
                 response.statusCode = 444; // NGINX specific error code
                 response.statusMessage = 'No Response';
-                response.write('The Response Error function is not set. It can be set using the appropriate function (onResponseError)');
+                response.write(
+                    'The Response Error function is not set. It can be set using the appropriate function (onResponseError)'
+                );
                 response.end();
             };
 
         if (this._errorFunctions[ERROR_KEY_NOTFOUND] == undefined)
-            this._errorFunctions[ERROR_KEY_NOTFOUND] = function (response: http.ServerResponse): void {
+            this._errorFunctions[ERROR_KEY_NOTFOUND] = function(
+                response: http.ServerResponse
+            ): void {
                 response.setHeader('Content-Type', 'text/html');
                 response.statusCode = 404;
                 response.statusMessage = 'Not Found';
-                response.write('The Not Found Error function is not set. It can be set using the appropriate function (onNotFoundError)');
+                response.write(
+                    'The Not Found Error function is not set. It can be set using the appropriate function (onNotFoundError)'
+                );
                 response.end();
             };
 
         if (this._errorFunctions[ERROR_KEY_OVERFLOW] == undefined)
-            this._errorFunctions[ERROR_KEY_OVERFLOW] = function (response: http.ServerResponse): void {
+            this._errorFunctions[ERROR_KEY_OVERFLOW] = function(
+                response: http.ServerResponse
+            ): void {
                 response.setHeader('Content-Type', 'text/html');
                 response.statusCode = 413;
                 response.statusMessage = 'Request Entity Too Large';
-                response.write('The Overflow Error function is not set. It can be set using the appropriate function (onOverflowError)');
+                response.write(
+                    'The Overflow Error function is not set. It can be set using the appropriate function (onOverflowError)'
+                );
                 response.end();
             };
         if (this._errorFunctions[ERROR_METHOD_NOT_ALLOWED] == undefined)
-            this._errorFunctions[ERROR_METHOD_NOT_ALLOWED] = (supportedMethods: string[], response: http.ServerResponse) => {
+            this._errorFunctions[ERROR_METHOD_NOT_ALLOWED] = (
+                supportedMethods: string[],
+                response: http.ServerResponse
+            ) => {
                 HttpResponse.MethodNotAllowed(response, supportedMethods);
             };
 

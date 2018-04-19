@@ -23,7 +23,7 @@ export class JsonResponse implements IMiddleware {
      * Alters the request object
      */
     public alter(req: http.IncomingMessage, res: http.ServerResponse): boolean {
-        (<IServerResponse>res).json = function (data: {}): void {
+        (<IServerResponse>res).json = function(data: {}): void {
             try {
                 var strJson = JSON.stringify(data);
 
@@ -35,7 +35,7 @@ export class JsonResponse implements IMiddleware {
                 res.setHeader('Content-Type', 'text/html');
                 res.statusCode = 500;
                 res.statusMessage = 'Invalid JSON';
-                res.write('Couldn\'t parse json data');
+                res.write("Couldn't parse json data");
             }
 
             res.end();

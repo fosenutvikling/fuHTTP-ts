@@ -25,7 +25,6 @@ export interface IOptions {
  * for supporting CORS
  */
 export class Cors implements IMiddleware {
-
     private options: IOptions;
 
     /**
@@ -40,20 +39,21 @@ export class Cors implements IMiddleware {
      * for a browser to not allow a http-call
      */
     public alter(req: http.IncomingMessage, res: http.ServerResponse): boolean {
-
         var origin: string;
 
-        if (this.options.methods == null)
-            this.options.methods = [<HTTP_METHODS>req.method];
+        if (this.options.methods == null) this.options.methods = [<HTTP_METHODS>req.method];
 
-        origin = (req.headers != null && req.headers.origin != null) ? <string>req.headers.origin : '*';
+        origin =
+            req.headers != null && req.headers.origin != null ? <string>req.headers.origin : '*';
         res.setHeader('Access-Control-Allow-Origin', origin);
 
         if (this.options.methods != null)
             res.setHeader('Access-Control-Request-Method', this.options.methods.toString()); // Required, allowed methods for path
-        if (this.options.cookies) // Optional, allows storing cookies
+        if (this.options.cookies)
+            // Optional, allows storing cookies
             res.setHeader('Access-Control-Allow-Credentials', 'true');
-        if (this.options.maxage) // Optional, allows preflight response to be cached, preventing an OPTIONS request for each http-request
+        if (this.options.maxage)
+            // Optional, allows preflight response to be cached, preventing an OPTIONS request for each http-request
             res.setHeader('Access-Control-Max-Age', this.options.maxage.toString());
         return true;
     }

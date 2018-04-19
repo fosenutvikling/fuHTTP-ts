@@ -1,19 +1,17 @@
 {
-    "compilerOptions": {
-        "target": "es6",
-        "module": "commonjs",
-        "outDir": "./build/",
-        "removeComments": false,
-        "emitDecoratorMetadata": true,
-        "experimentalDecorators": true,
-        "noImplicitAny": true,
-        "noUnusedLocals": true,
-        "declaration": true,
-        "sourceMap": true,
-        "moduleResolution": "node",
-        "listFiles": true
-    },
-    "files": [
-        "src/fuhttp.ts"
-    ]
+  "compilerOptions": {
+    "target": "es6",
+    "module": "commonjs",
+    "outDir": "./build/",
+    "removeComments": false,
+    "emitDecoratorMetadata": true,
+    "experimentalDecorators": true,
+    "noImplicitAny": true,
+    "noUnusedLocals": true,
+    "declaration": true,
+    "sourceMap": true,
+    "moduleResolution": "node",
+    "listFiles": true
+  },
+  "files": ["src/fuhttp.ts"]
 }

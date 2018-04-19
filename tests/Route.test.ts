@@ -214,6 +214,16 @@ describe('Route', () => {
             );
         });
 
+        it('should match route with query-parameter', () => {
+            assert.isTrue(
+                helloRoute.parse(
+                    { url: randomRoute + '?query=myquery' },
+                    new MockReq({ method: 'GET' }),
+                    null
+                )
+            );
+        });
+
         it('should match and call function', () => {
             let inc = 1;
             function getMatchRoot(req, res) {}

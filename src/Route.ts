@@ -57,10 +57,13 @@ export class Route {
         const queryPosition = url.indexOf('?');
 
         if (queryPosition >= 0) {
-            const queryStr = url.substr(queryPosition);
+            const queryStr = url.substr(queryPosition + 1);
             const parsedQuery = qs.parse(queryStr);
             params.push(parsedQuery);
+
+            return url.substr(0, queryPosition);
         }
+        return url;
     }
 
     /**
@@ -273,7 +276,10 @@ export class Route {
         let params = inputParams.params || [];
 
         if (splittedUrls[0] !== '') {
-            const key = splittedUrls[0];
+            let key = splittedUrls[0];
+
+            if (splittedUrls.length === 1) key = Route.appendQueryParams(key, params);
+
             const nextUrl = splittedUrls.splice(1).join('/');
 
             let nextRoute: Route;
@@ -310,7 +316,6 @@ export class Route {
 
             throw new NoMatchingHttpMethodException(`${req.method} not supported for route`, obj);
         }
-        Route.appendQueryParams(splittedUrls[0], params);
         callback.apply(null, [req, res, ...params]);
 
         return true;

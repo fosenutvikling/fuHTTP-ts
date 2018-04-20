@@ -264,11 +264,6 @@ export class Route {
         res: http.ServerResponse
     ): boolean {
         // Should stop processing of data if a middleware fails, to prevent setting headers if already changed by a middleware throwing an error
-
-        // Parse({url,middleware,params}req,res);
-        // If (!this.runMiddlewares(req, res))
-        //  Return false;
-
         const routeUrl = Route.fixRequestUrlForAdding(inputParams.url);
         const splittedUrls = routeUrl.split('/');
         inputParams.middlewares = [];

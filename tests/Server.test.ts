@@ -123,10 +123,10 @@ describe('Server', () => {
 
     describe('middlewares', () => {
         it('should add middleware', () => {
-            assert.isTrue(server.middlewares.length === 0);
+            assert.isTrue(server.middlewares.length === 2); // Default middlewares added in constructor
             let a: IMiddleware;
             server.use(a);
-            assert.isTrue(server.middlewares.length === 1);
+            assert.isTrue(server.middlewares.length === 3);
         });
     });
 });

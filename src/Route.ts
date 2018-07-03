@@ -2,6 +2,7 @@ import * as http from 'http';
 import { IBodyRequest } from './Server';
 import { IMiddleware } from './middlewares/IMiddleware';
 import * as qs from 'qs';
+import { IServerResponse } from './middlewares/JsonResponse';
 
 export enum HTTP_METHODS {
     GET = 'GET',
@@ -205,7 +206,10 @@ export class Route {
      * @param requestUrl url-endpoint to match incoming requests
      * @param func to call when match is found
      */
-    public get(requestUrl: string, func: RequestFunction) {
+    public get(
+        requestUrl: string,
+        func: (req: http.ServerRequest, res: IServerResponse, ...params: any[]) => void
+    ) {
         this.addRoute(HTTP_METHODS.GET, requestUrl, func);
     }
 
@@ -217,7 +221,7 @@ export class Route {
      */
     public post(
         requestUrl: string,
-        func: (req: IBodyRequest, res: http.ServerResponse, ...params: any[]) => void
+        func: (req: IBodyRequest, res: IServerResponse, ...params: any[]) => void
     ): void {
         this.addRoute(HTTP_METHODS.POST, requestUrl, func);
     }
@@ -230,7 +234,7 @@ export class Route {
      */
     public put(
         requestUrl: string,
-        func: (req: IBodyRequest, res: http.ServerResponse, ...params: any[]) => void
+        func: (req: IBodyRequest, res: IServerResponse, ...params: any[]) => void
     ): void {
         this.addRoute(HTTP_METHODS.PUT, requestUrl, func);
     }
@@ -243,7 +247,7 @@ export class Route {
      */
     public delete(
         requestUrl: string,
-        func: (req: IBodyRequest, res: http.ServerResponse, ...params: any[]) => void
+        func: (req: IBodyRequest, res: IServerResponse, ...params: any[]) => void
     ): void {
         this.addRoute(HTTP_METHODS.DELETE, requestUrl, func);
     }

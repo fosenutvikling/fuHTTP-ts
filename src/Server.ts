@@ -4,6 +4,8 @@ import * as http from 'http';
 import * as formidable from 'formidable';
 import { IMiddleware } from './middlewares/IMiddleware';
 import { HttpResponse } from './fuhttp';
+import { JsonResponse } from './middlewares/JsonResponse';
+import { BodyJsonParse } from './middlewares/BodyJsonParse';
 
 // Keys stored in `_errorFunctions` of the Server class
 const ERROR_KEY_REQUEST = 'request';
@@ -24,6 +26,10 @@ export interface IBodyRequest extends http.IncomingMessage {
  * The HTTP-server class for receiving and responding to HTTP-requests
  */
 export class Server {
+    private static defaultMiddleWares() {
+        return [new JsonResponse(), new BodyJsonParse()];
+    }
+
     /**
      * http node server instance
      */
@@ -75,7 +81,7 @@ export class Server {
         this.port = port;
         this.hostname = host;
         this.route = null;
-        this._middlewares = [];
+        this._middlewares = Server.defaultMiddleWares();
         this._errorFunctions = {};
         this.connected = false;
 

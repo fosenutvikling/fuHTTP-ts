@@ -10,14 +10,14 @@ function appendBanner(directory) {
         let stat = fs.statSync(directory + files[i]);
 
         if (stat.isDirectory()) {
-            let subDirectory = directory + files[i] + '/';
+            const subDirectory = directory + files[i] + '/';
             appendBanner(subDirectory);
         } else if (path.extname(files[i]) === '.js') {
-            let options = {
-                banner: './tasks/banner.tmpl',
+            const options = {
+                template: './tasks/banner.tmpl',
                 filename: files[i]
             };
-            let newFile = banner(directory + files[i], options);
+            const newFile = banner(directory + files[i], options);
 
             fs.writeFileSync(directory + files[i], newFile);
             console.log('\t' + files[i]);

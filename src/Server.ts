@@ -172,6 +172,8 @@ export class Server {
                     Object.keys(ex.supportedMethods),
                     response
                 );
+            } else {
+                this._errorFunctions[ERROR_EXCEPTION](ex, response);
             }
         }
         return false;

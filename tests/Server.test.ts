@@ -15,10 +15,13 @@ describe('Server', () => {
     let errorMethod = spy(res => {});
     server.onNotFoundError = errorMethod;
     let notAllowed = spy((methods, res) => {});
+    const exceptionMethod = spy((error, res) => {});
     server.onMethodNotAllowed = notAllowed;
+    server.onException = exceptionMethod;
     let apiRoute = new Route();
     let nonameRoute = new Route();
     let emptyRoute = new Route();
+    let exceptionRoute = new Route();
 
     apiRoute.get('/hello', () => {});
     apiRoute.get('/hello/world', () => {});
@@ -27,6 +30,9 @@ describe('Server', () => {
     emptyRoute.get('/print', () => {});
     emptyRoute.get('/is/this/root', () => {});
     emptyRoute.get('/', () => {});
+    exceptionRoute.get('/', () => {
+        throw new Error('error is thrown');
+    });
 
     describe('Add routes', () => {
         it('should add root route', () => {
@@ -118,6 +124,15 @@ describe('Server', () => {
             expect(notAllowed).to.have.been.called();
             expect(errorMethod).to.have.been.called.exactly(2);
             expect(notAllowed).to.have.been.called.exactly(1);
+        });
+    });
+
+    describe('exception', () => {
+        it('should call onException', () => {
+            server.add('/exception', exceptionRoute);
+            server['routeLookup'](new MockReq({ method: 'GET', url: '/exception' }), new MockRes());
+            expect(exceptionMethod).to.have.been.called();
+            expect(exceptionMethod).to.have.been.called.exactly(1);
         });
     });
 

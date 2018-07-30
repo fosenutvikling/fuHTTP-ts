@@ -1,6 +1,6 @@
 {
   "name": "fuhttp-ts",
-  "version": "1.1.0",
+  "version": "1.1.1",
   "description": "a HTTP-server written in TypeScript using Node.js",
   "main": "build/fuhttp.js",
   "typings": "build/fuhttp.d.ts",
@@ -19,11 +19,7 @@
     "type": "git",
     "url": "git+https://github.com/fosenutvikling/fuHTTP-ts.git"
   },
-  "keywords": [
-    "ts",
-    "fu",
-    "http"
-  ],
+  "keywords": ["ts", "fu", "http"],
   "author": "Jonas Kirkemyr <jonas@fosen-utvikling.no> (http://fosen-utvikling.no)",
   "company": "Fosen-Utvikling AS (http://fosen-utvikling.no)",
   "license": "MIT",

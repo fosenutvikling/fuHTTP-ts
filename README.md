@@ -1,7 +1,7 @@
 # fuhttp-ts
 [![Build Status](https://travis-ci.org/fosenutvikling/fuhttp-ts.svg?branch=testing)](https://travis-ci.org/fosenutvikling/fuhttp-ts)
 
-![fuhttp](./media/fuhttp-ts_logo.svg "fuhttp-ts logo")
+![fuhttp](./media/fuhttp_logo.png "fuhttp-ts logo")
 
 Web-server for nodejs written in `TypeScript`, highly inspired by [this blog post](https://nodejs.org/en/docs/guides/anatomy-of-an-http-transaction/). The server is built on top of the `http` package in nodejs.
 

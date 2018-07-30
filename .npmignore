@@ -2,8 +2,12 @@ node_modules
 documentation
 src
 typings
-Gruntfile.js
 .tscache
 .vscode
 .changelogrc
 tslint.json
+tests
+tasks
+.prettierrc
+.travis.yml
+tsconfig.json

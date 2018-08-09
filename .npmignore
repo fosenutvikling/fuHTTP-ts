@@ -11,3 +11,5 @@ tasks
 .prettierrc
 .travis.yml
 tsconfig.json
+.coverage
+.nyc_output

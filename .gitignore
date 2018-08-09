@@ -4,3 +4,5 @@ typings
 build
 documentation
 .vscode
+coverage
+.nyc_output

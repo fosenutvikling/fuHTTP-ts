@@ -7,15 +7,16 @@ import * as spies from 'chai-spies';
 var MockReq = require('mock-req');
 var MockRes = require('mock-res');
 import 'mocha';
+import { ServerResponse } from 'http';
 
 use(spies);
 
 describe('Server', () => {
     let server = new Server(1300);
-    let errorMethod = spy(res => {});
+    let errorMethod = spy((res: ServerResponse) => {});
     server.onNotFoundError = errorMethod;
-    let notAllowed = spy((methods, res) => {});
-    const exceptionMethod = spy((error, res) => {});
+    let notAllowed = spy((methods: any, res: ServerResponse) => {});
+    const exceptionMethod = spy((error: Error, res: ServerResponse) => {});
     server.onMethodNotAllowed = notAllowed;
     server.onException = exceptionMethod;
     let apiRoute = new Route();

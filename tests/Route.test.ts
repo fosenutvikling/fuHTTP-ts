@@ -5,6 +5,7 @@ import * as spies from 'chai-spies';
 import * as chaiPromised from 'chai-as-promised';
 var MockReq = require('mock-req');
 import 'mocha';
+import { ServerRequest, ServerResponse } from 'http';
 
 use(spies);
 use(chaiPromised);
@@ -16,11 +17,10 @@ describe('Route', () => {
     // Routes to add for testing
     const randomRoute = '/random';
     const newRoute = '/newRoute';
-    const exceptionRoute = '/exception';
 
-    let simpleRouteFunction = (req, res) => {};
+    let simpleRouteFunction = (req: ServerRequest, res: ServerResponse) => {};
     let middleware: IMiddleware = {
-        alter: (req, res) => {
+        alter: (req: ServerRequest, res: ServerResponse) => {
             return true;
         }
     };
@@ -235,8 +235,8 @@ describe('Route', () => {
 
         it('should match and call function', async () => {
             let inc = 1;
-            function getMatchRoot(req, res) {}
-            function getMatchRootId(req, res, id) {
+            function getMatchRoot(req: ServerRequest, res: ServerResponse) {}
+            function getMatchRootId(req: ServerRequest, res: ServerResponse, id: string) {
                 assert.isTrue(id === inc.toString());
                 ++inc;
             }
@@ -265,16 +265,16 @@ describe('Route', () => {
         });
 
         it('should call correct http-method', async () => {
-            let getMethod = spy(req => {
+            let getMethod = spy((req: ServerRequest) => {
                 assert.isTrue(req.method === 'GET');
             });
-            let putMethod = spy(req => {
+            let putMethod = spy((req: ServerRequest) => {
                 assert.isTrue(req.method === 'PUT');
             });
-            let postMethod = spy(req => {
+            let postMethod = spy((req: ServerRequest) => {
                 assert.isTrue(req.method === 'POST');
             });
-            let deleteMethod = spy(req => {
+            let deleteMethod = spy((req: ServerRequest) => {
                 assert.isTrue(req.method === 'DELETE');
             });
 
@@ -320,22 +320,22 @@ describe('Route', () => {
         });
 
         it('should call http-method with `world` as input parameter', async () => {
-            let getMethod = spy((req, res, name) => {
+            let getMethod = spy((req: ServerRequest, res: ServerResponse, name: string) => {
                 assert.isTrue(req.method === 'GET');
                 assert.isTrue(name === 'world-get');
             });
 
-            let putMethod = spy((req, res, name) => {
+            let putMethod = spy((req: ServerRequest, res: ServerResponse, name: string) => {
                 assert.isTrue(req.method === 'PUT');
                 assert.isTrue(name === 'world-put');
             });
 
-            let postMethod = spy((req, res, name) => {
+            let postMethod = spy((req: ServerRequest, res: ServerResponse, name: string) => {
                 assert.isTrue(req.method === 'POST');
                 assert.isTrue(name === 'world-post');
             });
 
-            let deleteMethod = spy((req, res, name) => {
+            let deleteMethod = spy((req: ServerRequest, res: ServerResponse, name: string) => {
                 assert.isTrue(req.method === 'DELETE');
                 assert.isTrue(name === 'world-delete');
             });
@@ -387,14 +387,6 @@ describe('Route', () => {
                     helloRoute.parse({ url: 'spy' }, new MockReq({ method: 'POST' }), null)
                 )
             );
-            /*expect(() =>
-                Promise.resolve(
-                    helloRoute.parse({ url: 'spy' }, new MockReq({ method: 'POST' }), null)
-                )
-            ).to.throw();*/
-            /*expect(() =>
-                helloRoute.parse({ url: 'spy' }, new MockReq({ method: 'POST' }), null)
-            ).to.throw();*/
         });
     });
 

@@ -422,6 +422,10 @@ export class Server {
         return this._errorFunctions[ERROR_KEY_NOTFOUND];
     }
 
+    public close() {
+        this.server.close();
+    }
+
     /**
      * Start the http-server, for accepting incomming connections on the
      * given port and hostname

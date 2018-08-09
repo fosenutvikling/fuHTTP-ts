@@ -3,9 +3,15 @@ import * as net from 'net';
 import * as http from 'http';
 import * as formidable from 'formidable';
 import { IMiddleware } from './middlewares/IMiddleware';
-import { HttpResponse } from './fuhttp';
 import { JsonResponse } from './middlewares/JsonResponse';
 import { BodyJsonParse } from './middlewares/BodyJsonParse';
+import {
+    DefaultErrorResponse,
+    DefaultNoResponseErrorResponse,
+    DefaultNotFoundErrorResponse,
+    DefaultLargeEntityErrorResponse,
+    DefaultMethodNotAllowedResponse
+} from './DefaultResponse';
 
 // Keys stored in `_errorFunctions` of the Server class
 const ERROR_KEY_REQUEST = 'request';
@@ -220,6 +226,32 @@ export class Server {
         return false;
     }
 
+    private setDefaultErrorResponses() {
+        if (this._errorFunctions[ERROR_KEY_REQUEST] == undefined)
+            this._errorFunctions[ERROR_KEY_REQUEST] = DefaultErrorResponse;
+
+        if (this._errorFunctions[ERROR_KEY_RESPONSE] == undefined)
+            this._errorFunctions[ERROR_KEY_RESPONSE] = DefaultNoResponseErrorResponse;
+
+        if (this._errorFunctions[ERROR_KEY_NOTFOUND] == undefined)
+            this._errorFunctions[ERROR_KEY_NOTFOUND] = DefaultNotFoundErrorResponse;
+
+        if (this._errorFunctions[ERROR_KEY_OVERFLOW] == undefined)
+            this._errorFunctions[ERROR_KEY_OVERFLOW] = DefaultLargeEntityErrorResponse;
+
+        if (this._errorFunctions[ERROR_METHOD_NOT_ALLOWED] == undefined)
+            this._errorFunctions[ERROR_METHOD_NOT_ALLOWED] = DefaultMethodNotAllowedResponse;
+    }
+
+    private printServerInfo() {
+        const { address, port } = this.server.address();
+        console.log(
+            `STARTED SERVER: http://${
+                address === '::' || address === '127.0.0.1' ? 'localhost' : address
+            }:${port} 🏁`
+        );
+    }
+
     /**
      * Whether the server is listening for connections or not. Will
      * only be true as long as the `listen` method is called
@@ -399,72 +431,11 @@ export class Server {
         if (this.route == null)
             throw new Error('No routes added, and no connections will therefore be accepted.');
 
-        if (this._errorFunctions[ERROR_KEY_REQUEST] == undefined)
-            this._errorFunctions[ERROR_KEY_REQUEST] = function(
-                error: Error,
-                response: http.ServerResponse
-            ): void {
-                console.error(error.stack);
-                response.setHeader('Content-Type', 'text/html');
-                response.statusCode = 400;
-                response.statusMessage = 'Bad Request';
-                response.write('Error: ' + error);
-                response.write(
-                    'The Request Error function is not set. It can be set using the appropriate function (onRequestError)'
-                );
-                response.end();
-            };
-
-        if (this._errorFunctions[ERROR_KEY_RESPONSE] == undefined)
-            this._errorFunctions[ERROR_KEY_RESPONSE] = function(
-                error: Error,
-                response: http.ServerResponse
-            ): void {
-                console.error(error.stack);
-                response.setHeader('Content-Type', 'text/html');
-                response.statusCode = 444; // NGINX specific error code
-                response.statusMessage = 'No Response';
-                response.write(
-                    'The Response Error function is not set. It can be set using the appropriate function (onResponseError)'
-                );
-                response.end();
-            };
-
-        if (this._errorFunctions[ERROR_KEY_NOTFOUND] == undefined)
-            this._errorFunctions[ERROR_KEY_NOTFOUND] = function(
-                response: http.ServerResponse
-            ): void {
-                response.setHeader('Content-Type', 'text/html');
-                response.statusCode = 404;
-                response.statusMessage = 'Not Found';
-                response.write(
-                    'The Not Found Error function is not set. It can be set using the appropriate function (onNotFoundError)'
-                );
-                response.end();
-            };
-
-        if (this._errorFunctions[ERROR_KEY_OVERFLOW] == undefined)
-            this._errorFunctions[ERROR_KEY_OVERFLOW] = function(
-                response: http.ServerResponse
-            ): void {
-                response.setHeader('Content-Type', 'text/html');
-                response.statusCode = 413;
-                response.statusMessage = 'Request Entity Too Large';
-                response.write(
-                    'The Overflow Error function is not set. It can be set using the appropriate function (onOverflowError)'
-                );
-                response.end();
-            };
-        if (this._errorFunctions[ERROR_METHOD_NOT_ALLOWED] == undefined)
-            this._errorFunctions[ERROR_METHOD_NOT_ALLOWED] = (
-                supportedMethods: string[],
-                response: http.ServerResponse
-            ) => {
-                HttpResponse.MethodNotAllowed(response, supportedMethods);
-            };
-
+        this.setDefaultErrorResponses();
         this.server.listen(this.port, this.hostname);
-        console.log('STARTED SERVER ON PORT: ' + this.port + ' AND LISTENING ON: ' + this.hostname);
+
+        this.printServerInfo();
+
         this.connected = true;
     }
 }

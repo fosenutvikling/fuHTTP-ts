@@ -13,17 +13,13 @@
     "banner": "node tasks/addBanner.js",
     "changelog": "./node_modules/.bin/auto-changelog --commit-limit false --template keepachangelog",
     "tslint-check": "tslint-config-prettier-check ./tslint.json",
-    "test": "mocha -r ts-node/register tests/*.ts"
+    "test": "nyc mocha --opts \"tests/mocha.opts\""
   },
   "repository": {
     "type": "git",
     "url": "git+https://github.com/fosenutvikling/fuHTTP-ts.git"
   },
-  "keywords": [
-    "ts",
-    "fu",
-    "http"
-  ],
+  "keywords": ["ts", "fu", "http"],
   "author": "Jonas Kirkemyr <jonas@fosen-utvikling.no> (http://fosen-utvikling.no)",
   "company": "Fosen-Utvikling AS (http://fosen-utvikling.no)",
   "license": "MIT",
@@ -52,11 +48,21 @@
     "mocha": "^5.2.0",
     "mock-req": "^0.2.0",
     "mock-res": "^0.5.0",
+    "nyc": "^12.0.2",
+    "source-map-support": "^0.5.7",
     "ts-node": "^7.0.0",
     "tsc-watch": "^1.0.26",
     "tslint": "^5.11.0",
     "tslint-config-prettier": "^1.14.0",
     "tslint-plugin-prettier": "^1.3.0",
     "typescript": "^3.0.1"
+  },
+  "nyc": {
+    "include": ["src/**/*.ts"],
+    "extension": [".ts", ".tsx"],
+    "require": ["ts-node/register"],
+    "reporter": ["text-summary", "html"],
+    "sourceMap": true,
+    "instrument": true
   }
 }

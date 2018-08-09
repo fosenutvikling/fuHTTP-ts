@@ -22,6 +22,7 @@ describe('Server', () => {
     let nonameRoute = new Route();
     let emptyRoute = new Route();
     let exceptionRoute = new Route();
+    let asyncExceptionRoute = new Route();
 
     apiRoute.get('/hello', () => {});
     apiRoute.get('/hello/world', () => {});
@@ -31,7 +32,11 @@ describe('Server', () => {
     emptyRoute.get('/is/this/root', () => {});
     emptyRoute.get('/', () => {});
     exceptionRoute.get('/', () => {
-        throw new Error('error is thrown');
+        throw new Error('error is thrown synchronous');
+    });
+
+    asyncExceptionRoute.get('/', async () => {
+        throw new Error('error is thrown asynchronous');
     });
 
     describe('Add routes', () => {
@@ -58,66 +63,69 @@ describe('Server', () => {
     });
 
     describe('routeLookup', () => {
-        it('should find route', () => {
+        it('should find route', async () => {
             assert.isTrue(
-                server['routeLookup'](new MockReq({ method: 'GET', url: '/hello' }), new MockRes())
+                await server['routeLookup'](
+                    new MockReq({ method: 'GET', url: '/hello' }),
+                    new MockRes()
+                )
             );
             assert.isTrue(
-                server['routeLookup'](
+                await server['routeLookup'](
                     new MockReq({ method: 'GET', url: '/hello/world' }),
                     new MockRes()
                 )
             );
 
             assert.isTrue(
-                server['routeLookup'](
+                await server['routeLookup'](
                     new MockReq({ method: 'GET', url: '/api/hello' }),
                     new MockRes()
                 )
             );
             assert.isTrue(
-                server['routeLookup'](
+                await server['routeLookup'](
                     new MockReq({ method: 'GET', url: '/api/hello/world' }),
                     new MockRes()
                 )
             );
 
             assert.isTrue(
-                server['routeLookup'](
+                await server['routeLookup'](
                     new MockReq({ method: 'GET', url: '/noname/foo' }),
                     new MockRes()
                 )
             );
             assert.isTrue(
-                server['routeLookup'](
+                await server['routeLookup'](
                     new MockReq({ method: 'GET', url: '/noname/foo/bar' }),
                     new MockRes()
                 )
             );
 
             assert.isTrue(
-                server['routeLookup'](
+                await server['routeLookup'](
                     new MockReq({ method: 'GET', url: '/api/noname/sub/noname/foo/bar' }),
                     new MockRes()
                 )
             );
         });
 
-        it('should not find route', () => {
+        it('should not find route', async () => {
             assert.isFalse(
-                server['routeLookup'](
+                await server['routeLookup'](
                     new MockReq({ method: 'GET', url: '/api/hello/foo' }),
                     new MockRes()
                 )
             );
             assert.isFalse(
-                server['routeLookup'](
+                await server['routeLookup'](
                     new MockReq({ method: 'GET', url: '/api/hello/world/foo' }),
                     new MockRes()
                 )
             );
             assert.isFalse(
-                server['routeLookup'](new MockReq({ method: 'GET', url: '' }), new MockRes())
+                await server['routeLookup'](new MockReq({ method: 'GET', url: '' }), new MockRes())
             );
 
             expect(errorMethod).to.have.been.called();
@@ -128,11 +136,26 @@ describe('Server', () => {
     });
 
     describe('exception', () => {
-        it('should call onException', () => {
+        it('should call onException', async () => {
             server.add('/exception', exceptionRoute);
-            server['routeLookup'](new MockReq({ method: 'GET', url: '/exception' }), new MockRes());
+            await server['routeLookup'](
+                new MockReq({ method: 'GET', url: '/exception' }),
+                new MockRes()
+            );
             expect(exceptionMethod).to.have.been.called();
             expect(exceptionMethod).to.have.been.called.exactly(1);
+        });
+    });
+
+    describe('async exception', () => {
+        it('should call onException async', async () => {
+            server.add('/asyncException', asyncExceptionRoute);
+            await server['routeLookup'](
+                new MockReq({ method: 'GET', url: '/asyncException' }),
+                new MockRes()
+            );
+            expect(exceptionMethod).to.have.been.called();
+            expect(exceptionMethod).to.have.been.called.exactly(2);
         });
     });
 

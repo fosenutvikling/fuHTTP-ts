@@ -19,7 +19,11 @@
     "type": "git",
     "url": "git+https://github.com/fosenutvikling/fuHTTP-ts.git"
   },
-  "keywords": ["ts", "fu", "http"],
+  "keywords": [
+    "ts",
+    "fu",
+    "http"
+  ],
   "author": "Jonas Kirkemyr <jonas@fosen-utvikling.no> (http://fosen-utvikling.no)",
   "company": "Fosen-Utvikling AS (http://fosen-utvikling.no)",
   "license": "MIT",
@@ -34,6 +38,7 @@
   },
   "devDependencies": {
     "@types/chai": "^4.1.4",
+    "@types/chai-as-promised": "^7.1.0",
     "@types/chai-spies": "0.0.0",
     "@types/formidable": "^1.0.30",
     "@types/mocha": "^2.2.48",
@@ -42,6 +47,7 @@
     "add-banner": "^1.0.0",
     "auto-changelog": "^1.7.2",
     "chai": "^4.1.2",
+    "chai-as-promised": "^7.1.1",
     "chai-spies": "^0.7.1",
     "mocha": "^5.0.4",
     "mock-req": "^0.2.0",

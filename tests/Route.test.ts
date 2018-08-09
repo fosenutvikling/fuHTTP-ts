@@ -2,11 +2,12 @@ import { Route } from '../src/Route';
 import { IMiddleware } from '../src/middlewares/iMiddleware';
 import { expect, assert, use, spy } from 'chai';
 import * as spies from 'chai-spies';
-import * as http from 'http';
+import * as chaiPromised from 'chai-as-promised';
 var MockReq = require('mock-req');
 import 'mocha';
 
 use(spies);
+use(chaiPromised);
 
 describe('Route', () => {
     // Route object used for testing
@@ -166,47 +167,55 @@ describe('Route', () => {
     });
 
     describe('Parse', () => {
-        it('Should match route', () => {
+        it('Should match route', async () => {
             assert.isTrue(
-                helloRoute.parse({ url: randomRoute }, new MockReq({ method: 'GET' }), null)
+                await helloRoute.parse({ url: randomRoute }, new MockReq({ method: 'GET' }), null)
             );
             assert.isTrue(
-                helloRoute.parse({ url: randomRoute }, new MockReq({ method: 'PUT' }), null)
+                await helloRoute.parse({ url: randomRoute }, new MockReq({ method: 'PUT' }), null)
             );
             assert.isTrue(
-                helloRoute.parse({ url: randomRoute }, new MockReq({ method: 'POST' }), null)
+                await helloRoute.parse({ url: randomRoute }, new MockReq({ method: 'POST' }), null)
             );
             assert.isTrue(
-                helloRoute.parse({ url: randomRoute }, new MockReq({ method: 'DELETE' }), null)
+                await helloRoute.parse(
+                    { url: randomRoute },
+                    new MockReq({ method: 'DELETE' }),
+                    null
+                )
             );
 
             assert.isTrue(
-                helloRoute.parse({ url: newRoute }, new MockReq({ method: 'GET' }), null)
+                await helloRoute.parse({ url: newRoute }, new MockReq({ method: 'GET' }), null)
             );
             assert.isTrue(
-                helloRoute.parse({ url: newRoute }, new MockReq({ method: 'PUT' }), null)
+                await helloRoute.parse({ url: newRoute }, new MockReq({ method: 'PUT' }), null)
             );
             assert.isTrue(
-                helloRoute.parse({ url: newRoute }, new MockReq({ method: 'POST' }), null)
+                await helloRoute.parse({ url: newRoute }, new MockReq({ method: 'POST' }), null)
             );
             assert.isTrue(
-                helloRoute.parse({ url: newRoute }, new MockReq({ method: 'DELETE' }), null)
+                await helloRoute.parse({ url: newRoute }, new MockReq({ method: 'DELETE' }), null)
             );
         });
 
-        it('should match route without slash', () => {
+        it('should match route without slash', async () => {
             assert.isTrue(
-                helloRoute.parse({ url: randomRoute + '/' }, new MockReq({ method: 'GET' }), null)
+                await helloRoute.parse(
+                    { url: randomRoute + '/' },
+                    new MockReq({ method: 'GET' }),
+                    null
+                )
             );
             assert.isTrue(
-                helloRoute.parse(
+                await helloRoute.parse(
                     { url: randomRoute.substring(1) + '/' },
                     new MockReq({ method: 'GET' }),
                     null
                 )
             );
             assert.isTrue(
-                helloRoute.parse(
+                await helloRoute.parse(
                     { url: randomRoute.substring(1) },
                     new MockReq({ method: 'GET' }),
                     null
@@ -214,9 +223,9 @@ describe('Route', () => {
             );
         });
 
-        it('should match route with query-parameter', () => {
+        it('should match route with query-parameter', async () => {
             assert.isTrue(
-                helloRoute.parse(
+                await helloRoute.parse(
                     { url: randomRoute + '?query=myquery' },
                     new MockReq({ method: 'GET' }),
                     null
@@ -224,7 +233,7 @@ describe('Route', () => {
             );
         });
 
-        it('should match and call function', () => {
+        it('should match and call function', async () => {
             let inc = 1;
             function getMatchRoot(req, res) {}
             function getMatchRootId(req, res, id) {
@@ -240,20 +249,22 @@ describe('Route', () => {
             helloRoute.get('/spy/:id/hello', spyFunctionRootId);
             helloRoute.get('/spy/:id/hello/world', spyFunctionRootId);
 
-            assert.isTrue(helloRoute.parse({ url: '/spy' }, new MockReq({ method: 'GET' }), null));
+            assert.isTrue(
+                await helloRoute.parse({ url: '/spy' }, new MockReq({ method: 'GET' }), null)
+            );
 
             assert.isTrue(
-                helloRoute.parse({ url: '/spy/1' }, new MockReq({ method: 'GET' }), null)
+                await helloRoute.parse({ url: '/spy/1' }, new MockReq({ method: 'GET' }), null)
             );
             assert.isTrue(
-                helloRoute.parse({ url: '/spy/2' }, new MockReq({ method: 'GET' }), null)
+                await helloRoute.parse({ url: '/spy/2' }, new MockReq({ method: 'GET' }), null)
             );
 
             expect(spyFunctionRoot).to.have.been.called.exactly(1);
             expect(spyFunctionRootId).to.have.been.called.exactly(2);
         });
 
-        it('should call correct http-method', () => {
+        it('should call correct http-method', async () => {
             let getMethod = spy(req => {
                 assert.isTrue(req.method === 'GET');
             });
@@ -273,17 +284,33 @@ describe('Route', () => {
             helloRoute.delete('/hello-world', deleteMethod);
 
             assert.isTrue(
-                helloRoute.parse({ url: '/hello-world' }, new MockReq({ method: 'GET' }), null)
+                await helloRoute.parse(
+                    { url: '/hello-world' },
+                    new MockReq({ method: 'GET' }),
+                    null
+                )
             );
             assert.isTrue(
-                helloRoute.parse({ url: '/hello-world' }, new MockReq({ method: 'PUT' }), null)
+                await helloRoute.parse(
+                    { url: '/hello-world' },
+                    new MockReq({ method: 'PUT' }),
+                    null
+                )
             );
             assert.isTrue(
-                helloRoute.parse({ url: '/hello-world' }, new MockReq({ method: 'POST' }), null)
+                await helloRoute.parse(
+                    { url: '/hello-world' },
+                    new MockReq({ method: 'POST' }),
+                    null
+                )
             );
 
             assert.isTrue(
-                helloRoute.parse({ url: '/hello-world' }, new MockReq({ method: 'DELETE' }), null)
+                await helloRoute.parse(
+                    { url: '/hello-world' },
+                    new MockReq({ method: 'DELETE' }),
+                    null
+                )
             );
 
             expect(getMethod).to.have.been.called.exactly(1);
@@ -292,7 +319,7 @@ describe('Route', () => {
             expect(deleteMethod).to.have.been.called.exactly(1);
         });
 
-        it('should call http-method with `world` as input parameter', () => {
+        it('should call http-method with `world` as input parameter', async () => {
             let getMethod = spy((req, res, name) => {
                 assert.isTrue(req.method === 'GET');
                 assert.isTrue(name === 'world-get');
@@ -319,28 +346,28 @@ describe('Route', () => {
             helloRoute.delete('/hello-world/:name', deleteMethod);
 
             assert.isTrue(
-                helloRoute.parse(
+                await helloRoute.parse(
                     { url: '/hello-world/world-get' },
                     new MockReq({ method: 'GET' }),
                     null
                 )
             );
             assert.isTrue(
-                helloRoute.parse(
+                await helloRoute.parse(
                     { url: '/hello-world/world-put' },
                     new MockReq({ method: 'PUT' }),
                     null
                 )
             );
             assert.isTrue(
-                helloRoute.parse(
+                await helloRoute.parse(
                     { url: '/hello-world/world-post' },
                     new MockReq({ method: 'POST' }),
                     null
                 )
             );
             assert.isTrue(
-                helloRoute.parse(
+                await helloRoute.parse(
                     { url: '/hello-world/world-delete' },
                     new MockReq({ method: 'DELETE' }),
                     null
@@ -355,9 +382,19 @@ describe('Route', () => {
 
         it('should throw Error', () => {
             // TODO: create new route with no post route defined
-            expect(() =>
+            assert.isRejected(
+                Promise.resolve(
+                    helloRoute.parse({ url: 'spy' }, new MockReq({ method: 'POST' }), null)
+                )
+            );
+            /*expect(() =>
+                Promise.resolve(
+                    helloRoute.parse({ url: 'spy' }, new MockReq({ method: 'POST' }), null)
+                )
+            ).to.throw();*/
+            /*expect(() =>
                 helloRoute.parse({ url: 'spy' }, new MockReq({ method: 'POST' }), null)
-            ).to.throw();
+            ).to.throw();*/
         });
     });
 

@@ -22,6 +22,9 @@ export interface IBodyRequest extends http.IncomingMessage {
     contentType?: string;
 }
 
+class OverflowError extends Error {}
+class FormidableError extends Error {}
+
 /**
  * The HTTP-server class for receiving and responding to HTTP-requests
  */
@@ -86,64 +89,99 @@ export class Server {
         this.connected = false;
 
         this.server = http.createServer();
-
-        var self = this;
-
-        this.server.on('request', function(
-            request: http.IncomingMessage,
-            response: http.ServerResponse
-        ): void {
-            var body = '';
-            request.on('error', function(error: Error): void {
-                self._errorFunctions[ERROR_KEY_REQUEST](error, response);
-            });
-
-            response.on('error', function(error: Error): void {
-                self._errorFunctions[ERROR_KEY_RESPONSE](error, response);
-            });
-
-            // Should parse the body if a POST,PUT or DELETE request is made, with content-length set
-            if (request.method !== 'GET' && request.headers['content-length'] != undefined) {
-                var contentTypeRaw: string = request.headers['content-type'];
-                var contentType =
-                    contentTypeRaw != undefined
-                        ? contentTypeRaw.slice(0, contentTypeRaw.indexOf(';'))
-                        : null;
-
-                (<IBodyRequest>request).contentType = contentType;
-
-                if (contentType === 'multipart/form-data') {
-                    var form = new formidable.IncomingForm();
-                    form.parse(request, function(
-                        error: any,
-                        fields: formidable.Fields,
-                        files: formidable.Files
-                    ): any {
-                        if (error) return request.emit('error', 'Error parsing request body');
-
-                        (<IBodyRequest>request).fields = fields;
-                        (<IBodyRequest>request).files = files;
-                        self.routeLookup(request, response);
-                    });
-                } else {
-                    request.on('data', function(data: Buffer): Function {
-                        body += data;
-
-                        // Prevent flooding of RAM (1mb) http://stackoverflow.com/a/8640308
-                        if (body.length > 1e6) {
-                            return self._errorFunctions[ERROR_KEY_OVERFLOW](response);
-                        }
-                    });
-
-                    request.on('end', function(): void {
-                        (<IBodyRequest>request).body = body;
-                        self.routeLookup(request, response);
-                    });
-                }
-            } // No need to parse any body data when a GET request is made
-            else self.routeLookup(request, response);
-        });
+        this.server.on('request', this.onServerRequest);
     }
+
+    private onServerRequest = async (
+        request: http.IncomingMessage,
+        response: http.ServerResponse
+    ) => {
+        request.on('error', this.onRequestServerError(response));
+        response.on('error', this.onResponseServerError(response));
+
+        // Should try to parse body data
+        if (request.method !== 'GET' && request.headers['content-length'] != undefined) {
+            try {
+                request = await this.getRequestWithBody(request);
+            } catch (ex) {
+                if (ex instanceof OverflowError) {
+                    this._errorFunctions[ERROR_KEY_OVERFLOW](response);
+                } else if (ex instanceof FormidableError) {
+                    request.emit('error', 'Error parsing body');
+                } else {
+                    request.emit('error', `Unknown error occured: ${ex}`);
+                }
+                return;
+            }
+        }
+
+        this.routeLookup(request, response);
+    };
+
+    private onRequestServerError = (response: http.ServerResponse) => {
+        return (error: Error) => this._errorFunctions[ERROR_KEY_REQUEST](error, response);
+    };
+
+    private onResponseServerError = (response: http.ServerResponse) => {
+        return (error: Error) => this._errorFunctions[ERROR_KEY_RESPONSE](error, response);
+    };
+
+    private getRequestWithBody = async (request: http.ServerRequest) => {
+        const contentType = this.parseRequestContentType(request);
+        (request as IBodyRequest).contentType = contentType;
+
+        if (contentType === 'multipart/form-data') {
+            const { fields, files } = await this.parseFormData(request);
+            (request as IBodyRequest).fields = fields;
+            (request as IBodyRequest).files = files;
+
+            return request;
+        } else {
+            const body = await this.parseRequestBody(request);
+            (request as IBodyRequest).body = body;
+            return request;
+        }
+    };
+
+    private parseRequestContentType = (request: http.ServerRequest) => {
+        const contentTypeRaw = request.headers['content-type'];
+        const contentType = contentTypeRaw
+            ? contentTypeRaw.slice(0, contentTypeRaw.indexOf(';'))
+            : null;
+
+        return contentType;
+    };
+
+    private parseFormData = (request: http.ServerRequest) => {
+        const form = new formidable.IncomingForm();
+
+        return new Promise<{ fields: formidable.Fields; files: formidable.Files } | any>(
+            (resolve, reject) => {
+                form.parse(request, (error, fields, files) => {
+                    if (error) return reject(new FormidableError(error));
+
+                    return resolve({ fields, files });
+                });
+            }
+        );
+    };
+
+    private parseRequestBody = (request: http.ServerRequest) => {
+        let body = '';
+        return new Promise<string | string>((resolve, reject) => {
+            request.on('data', data => {
+                body += data;
+
+                if (body.length > 1e6) {
+                    return reject(new OverflowError());
+                }
+            });
+
+            request.on('end', () => {
+                return resolve(body);
+            });
+        });
+    };
 
     /**
      * Look up route based on request url.
@@ -153,7 +191,10 @@ export class Server {
      * @param request
      * @param response
      */
-    private routeLookup(request: http.IncomingMessage, response: http.ServerResponse): boolean {
+    private async routeLookup(
+        request: http.IncomingMessage,
+        response: http.ServerResponse
+    ): Promise<boolean> {
         // Load middlewares
         var length = this.middlewares.length;
         for (let i = 0; i < length; ++i)
@@ -162,7 +203,7 @@ export class Server {
                 return false;
 
         try {
-            if (this.route.parse({ url: request.url }, request, response)) return true;
+            if (await this.route.parse({ url: request.url }, request, response)) return true;
             // 404 error
             this._errorFunctions[ERROR_KEY_NOTFOUND](response);
             return false;

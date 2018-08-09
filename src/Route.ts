@@ -262,11 +262,11 @@ export class Route {
      * @param req Http Request
      * @param res Http Response
      */
-    public parse(
+    public async parse(
         inputParams: IParseParams,
         req: http.IncomingMessage,
         res: http.ServerResponse
-    ): boolean {
+    ): Promise<boolean> {
         // Should stop processing of data if a middleware fails, to prevent setting headers if already changed by a middleware throwing an error
         const routeUrl = Route.fixRequestUrlForAdding(inputParams.url);
         const splittedUrls = routeUrl.split('/');
@@ -289,7 +289,7 @@ export class Route {
                 nextRoute = this._nextRoutes[Route.paramRoute];
             } else return false;
 
-            return nextRoute.parse(
+            return await nextRoute.parse(
                 {
                     url: nextUrl,
                     params,
@@ -315,7 +315,11 @@ export class Route {
 
             throw new NoMatchingHttpMethodException(`${req.method} not supported for route`, obj);
         }
-        callback.apply(null, [req, res, ...params]);
+        try {
+            await callback.apply(null, [req, res, ...params]);
+        } catch (ex) {
+            throw ex;
+        }
 
         return true;
     }

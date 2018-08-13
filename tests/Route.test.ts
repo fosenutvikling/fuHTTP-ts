@@ -1,5 +1,5 @@
 import { Route } from '../src/Route';
-import { IMiddleware } from '../src/middlewares/iMiddleware';
+import { IMiddleware } from '../src/middlewares/IMiddleware';
 import { expect, assert, use, spy } from 'chai';
 import * as spies from 'chai-spies';
 import * as chaiPromised from 'chai-as-promised';
@@ -515,7 +515,7 @@ describe('Route', () => {
             assert.equal(helloRoute.middleware.length, 1);
 
             const a: IMiddleware = {
-                alter: (req, res) => {
+                alter: (req: ServerRequest, res: ServerResponse) => {
                     return true;
                 }
             };

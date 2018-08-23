@@ -231,6 +231,18 @@ describe('Route', () => {
                     null
                 )
             );
+
+            helloRoute.get('/', (req, res, query) => {
+                console.log('parent called with query');
+            });
+
+            assert.isTrue(
+                await helloRoute.parse(
+                    { url: '?query=myquery' },
+                    new MockReq({ method: 'GET' }),
+                    null
+                )
+            );
         });
 
         it('should match and call function', async () => {

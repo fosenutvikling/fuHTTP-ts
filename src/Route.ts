@@ -274,10 +274,11 @@ export class Route {
         const middlewares = this._middlewares.concat(inputParams.middlewares || []);
         let params = inputParams.params || [];
 
+        if (splittedUrls.length === 1)
+            splittedUrls[0] = Route.appendQueryParams(splittedUrls[0], params);
+
         if (splittedUrls[0] !== '') {
             let key = splittedUrls[0];
-
-            if (splittedUrls.length === 1) key = Route.appendQueryParams(key, params);
 
             const nextUrl = splittedUrls.splice(1).join('/');
 
